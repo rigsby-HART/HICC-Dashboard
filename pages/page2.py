@@ -919,7 +919,8 @@ def table_generator(geo, df, table_id):
         filtered_df = filtered_df[filtered_df['Metric'].isin(['Primary Rental Units', 'Secondary Rental Units'])]
 
     elif ((table_id == 'output_9') or (table_id == 'output_10a') or (table_id == 'output_10b')):
-
+        if table_id == 'output_9':
+            filtered_df = filtered_df[filtered_df['Age']!= '75plus']
         if (table_id == 'output_10a') or (table_id == 'output_10b'):
             new_header = ['Household Suppression by age of Primary household maintainer -\
                        following BC HNR methodology'] * (len(filtered_df.columns))
@@ -969,9 +970,9 @@ def percent_formatting(df, col_list, mult_flag, conditions={}):
         if all(conditions[col](row[col]) for col in conditions if col in row):
             for col in col_list:
                 if mult_flag == 0:
-                    row[col] = f"{row[col]:.2f}%" if pd.notna(row[col]) and row[col] != 'n/a' else row[col]
+                    row[col] = f"{row[col]:.0f}%" if pd.notna(row[col]) and row[col] != 'n/a' else row[col]
                 elif mult_flag == 1:
-                    row[col] = f"{row[col] * 100:.2f}%" if pd.notna(row[col]) and row[col] != 'n/a' else row[col]
+                    row[col] = f"{row[col] * 100:.1f}%" if pd.notna(row[col]) and row[col] != 'n/a' else row[col]
                 else:
                     row[col] = f"{row[col] * 100:.2%}" if pd.notnull(row[col]) and row[col] != 'n/a' else row[col]
         return row
@@ -2266,7 +2267,7 @@ def update_output_10b(geo, geo_c, scale, selected_columns):
 
     table.drop_duplicates(inplace=True)
     # print(table.columns[::3])
-    table = number_formatting(table, table.columns[1::2].tolist(), 2)
+    table = number_formatting(table, table.columns[1::2].tolist(), 0)
     table = number_formatting(table, list(table.columns[[2]]), 0)
 
     style_data_conditional = generate_style_data_conditional(table)
