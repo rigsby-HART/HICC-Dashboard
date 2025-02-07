@@ -1,0 +1,11 @@
+__pycache__/*
+helper/.ipynb_checkpoints/*
+helper/__pycache__/*
+sources/Archive/*
+pages/__pycache__/*
+pages/Archive/*
+ForQA_throughputs_250204.zip/*
+Archive/*
+hicc_env/*
+throughputs/*
+.idea
