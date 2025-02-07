@@ -7,10 +7,10 @@ from io import BytesIO
 from app_file import app
 
 # Connect to app pages
-from pages import page1, page_2_HVmerge
+from pages import page1, page2
 from pages import page1
 # Dynamically import the tables
-from pages.page_2_HVmerge import *
+from pages.page2 import *
 
 # Define the index page layout
 app.layout = html.Div([
@@ -34,7 +34,7 @@ def display_page(pathname):
     if pathname == '/page1':
         return page1.layout
     elif pathname == '/page2':
-        return page_2_HVmerge.layout
+        return page2.layout
     else:
         return "404 Page Error! Please choose a link"
 
