@@ -60,37 +60,25 @@ app.clientside_callback(
 )
 
 table_functions = {
-    'export-table-2a': (update_output_2a, "Output2a"),
-    'export-table-2b': (update_output_2b, "Output2b"),
-    'export-table-3a': (update_output_3a, "Output3a"),
-    'export-table-3b': (update_output_3b, "Output3b"),
-    'export-table-4a': (update_output_4a, "Output4a"),
-    'export-table-4b': (update_output_4b, "Output4b"),
-    'export-table-5a': (update_output_5a, "Output5a"),
-    'export-table-5b': (update_output_5b, "Output5b"),
-    'export-table-6': (update_output_6, "Output6"),
+    'export-table-1': (update_output_2a, "Output2a"),
+    'export-table-2': (update_output_2b, "Output2b"),
+    'export-table-3': (update_output_3a, "Output3a"),
+    'export-table-4': (update_output_3b, "Output3b"),
+    'export-table-5': (update_output_4a, "Output4a"),
+    'export-table-6': (update_output_4b, "Output4b"),
+    'export-table-7': (update_output_5a, "Output5a"),
+    'export-table-8': (update_output_5b, "Output5b"),
+    'export-table-9': (update_output_6, "Output6"),
+    'export-table-10': (update_output_7, "Output7"),
+    'export-table-11': (update_output_8, "Output8"),
+    'export-table-12': (update_output_9, "Output9"),
     'export-table-13': (update_output_10a, "Output10a"),
     'export-table-14': (update_output_10b, "Output10b"),
-    'export-table-12': (update_output_9, "Output9"),
-    'export-table-11': (update_output_8, "Output8"),
-    'export-table-10': (update_output_7, "Output7"),
-
-    # 'export-table-5': (update_table_7a, "Table4a"),
-    # 'export-table-6': (update_table_7b, "Table4b"),
-    # 'export-table-7': (update_table_8, "Table5"),
-    # 'export-table-8': (update_table_9, "Table6"),
-    # 'export-table-9': (update_table_10, "Table7"),
-    # 'export-table-10': (update_table_11, "Table8"),
-    # 'export-table-11': (update_table_12, "Table9"),
-#     'export-table-12': (update_table_13, "Table10"),
-#     'export-table-13': (update_table_14, "Table11"),
-#     'export-table-14': (update_table_15, "Table12"),
-#     'export-table-15': (update_table_16, "Table13"),
 }
 
 @app.callback(
     Output("download-dataframe-xlsx", "data"),
-    [Input(f"export-table-{i}", "n_clicks") for i in range(1, 16)] +
+    [Input(f"export-table-{i}", "n_clicks") for i in range(1, 15)] +
     [State('main-area', 'data'), State('comparison-area', 'data'), State('area-scale-store', 'data')],
     prevent_initial_call=True,
 )

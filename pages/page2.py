@@ -18,20 +18,6 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 engine_new = create_engine('sqlite:///sources//hicc.db')
 engine_old = create_engine('sqlite:///sources//old_hart.db')
 
-# mapping_dict = {
-#     590002: 5900002,
-#     590003: 5900003,
-#     590004: 5900004,
-#     590005: 5900005,
-#     590006: 5900006,
-#     590007: 5900007,
-#     590008: 5900008,
-#     590009: 5900009,
-#     590010: 5900010,
-#     590011: 5900011,
-#     590012: 5900012,
-#     590013: 5900013,
-# }
 
 output_2 = pd.read_sql_table('output_2', engine_new.connect())
 output_3 = pd.read_sql_table('output_3', engine_new.connect())
@@ -95,34 +81,6 @@ modebar_activecolor = '#044762'
 
 opacity_value = 0.2
 
-
-def default_data(df, id, dynamic_text=''):
-    filtered_df = df[df['ALT_GEO_CODE_EN'] == '5915002'].iloc[:, 5:]
-    if (id == 'output_10a') or (id == 'output_10b'):
-        new_header = [f'Household Suppression by age of Primary household maintainer -\
-                   following BC HNR methodology (table {dynamic_text} of 2)'] * (len(filtered_df.columns))
-    else:
-        new_header = ['Changes in Headship rate of Primary Household Maintainer (PHM) by \
-                      age between 2016 and 2021'] * (len(filtered_df.columns))
-
-    filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
-    return filtered_df
-
-
-output_2_for_dash = output_2[output_2['ALT_GEO_CODE_EN'] == '5915002'].iloc[:, 5:]
-output_3_for_dash = output_3[output_3['ALT_GEO_CODE_EN'] == '5915002'].iloc[:, 5:]
-output_4a_for_dash = output_4a[output_4a['ALT_GEO_CODE_EN'] == '5915002'].iloc[:, 5:]
-output_4b_for_dash = output_4b[output_4b['ALT_GEO_CODE_EN'] == '5915002'].iloc[:, 5:]
-output_5a_for_dash = output_5a[output_5a['ALT_GEO_CODE_EN'] == '5915002'].iloc[:, 5:]
-output_5b_for_dash = output_5b[output_5b['ALT_GEO_CODE_EN'] == '5915002'].iloc[:, 5:]
-output_6_for_dash = output_6[output_6['ALT_GEO_CODE_EN'] == '5915002'].iloc[:, 5:]
-output_7_for_dash = output_7[output_7['ALT_GEO_CODE_EN'] == '5915002'].iloc[:, 5:]
-output_8_for_dash = output_8[output_8['ALT_GEO_CODE_EN'] == '5915002'].iloc[:, 5:]
-
-output_9_for_dash = default_data(output_10a, 'output_9')
-output_10a_for_dash = default_data(output_10a, 'output_10a', 1)
-output_10b_for_dash = default_data(output_10b, 'output_10b', 2)
-
 # Default location in the map
 
 default_value = 'Vancouver CY (CSD, BC)'
@@ -181,17 +139,6 @@ layout = html.Div(children=[
                      dbc.Button("Export", id="export-table-12", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_9',
-                         columns=[
-                             {"name": [col1, col2], "id": f"{col1}_{col2}", "deletable": False, "selectable": False}
-                             for col1, col2 in output_9_for_dash.columns],
-                         data=[
-                             {
-                                 **{f"{x1}_{x2}": y for (x1, x2), y in data},
-                             }
-                             for (n, data) in [
-                                 *enumerate([list(x.items()) for x in output_9_for_dash.T.to_dict().values()])
-                             ]
-                         ],
                          merge_duplicate_headers=True,
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
@@ -244,17 +191,6 @@ layout = html.Div(children=[
                      dbc.Button("Export", id="export-table-13", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_10a',
-                         columns=[
-                             {"name": [col1, col2], "id": f"{col1}_{col2}", "deletable": False, "selectable": False}
-                             for col1, col2 in output_10a_for_dash.columns],
-                         data=[
-                             {
-                                 **{f"{x1}_{x2}": y for (x1, x2), y in data},
-                             }
-                             for (n, data) in [
-                                 *enumerate([list(x.items()) for x in output_10a_for_dash.T.to_dict().values()])
-                             ]
-                         ],
                          merge_duplicate_headers=True,
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
@@ -282,17 +218,6 @@ layout = html.Div(children=[
                      dbc.Button("Export", id="export-table-14", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_10b',
-                         columns=[
-                             {"name": [col1, col2], "id": f"{col1}_{col2}", "deletable": False, "selectable": False}
-                             for col1, col2 in output_10b_for_dash.columns],
-                         data=[
-                             {
-                                 **{f"{x1}_{x2}": y for (x1, x2), y in data},
-                             }
-                             for (n, data) in [
-                                 *enumerate([list(x.items()) for x in output_10b_for_dash.T.to_dict().values()])
-                             ]
-                         ],
                          merge_duplicate_headers=True,
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
@@ -320,7 +245,7 @@ layout = html.Div(children=[
                          f'The following table shows the number of primary and secondary rental units in 2021',
                          style={'fontFamily': 'Open Sans, sans-serif'}
                      ),
-                     dbc.Button("Export", id="export-table-6", className="mb-3", color="primary"),
+                     dbc.Button("Export", id="export-table-9", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_6',
                          merge_duplicate_headers=True,
@@ -370,29 +295,10 @@ layout = html.Div(children=[
                          f'The following table shows average monthly rent.',
                          style={'fontFamily': 'Open Sans, sans-serif'}
                      ),
-                     dbc.Button("Export", id="export-table-2a", className="mb-3", color="primary"),
+                     dbc.Button("Export", id="export-table-1", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_2a',
-                         columns=[{"name": col, "id": col, "deletable": False, "selectable": False} for col in
-                                  output_2_for_dash.columns],
-                         data=output_2_for_dash.to_dict('records'),
-                         # editable=False,
-                         # sort_action="native",
-                         # sort_mode="multi",
-                         # column_selectable=False,
-                         # row_selectable=False,
-                         # row_deletable=False,
-                         # cell_selectable=False,
-                         # selected_columns=[],
-                         # selected_rows=[],
-                         # page_action="native",
-                         # page_current=0,
-                         # page_size=10,
                          merge_duplicate_headers=True,
-                         # style_table={
-                         #               "overflowY": "auto"
-
-                         #               },
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
                          style_cell={'font-family': 'Bahnschrift',
@@ -416,29 +322,10 @@ layout = html.Div(children=[
                          f'The following table shows percent change in average monthly rent',
                          style={'fontFamily': 'Open Sans, sans-serif'}
                      ),
-                     dbc.Button("Export", id="export-table-2b", className="mb-3", color="primary"),
+                     dbc.Button("Export", id="export-table-2", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_2b',
-                         columns=[{"name": col, "id": col, "deletable": False, "selectable": False} for col in
-                                  output_2_for_dash.columns],
-                         data=output_2_for_dash.to_dict('records'),
-                         # editable=False,
-                         # sort_action="native",
-                         # sort_mode="multi",
-                         # column_selectable=False,
-                         # row_selectable=False,
-                         # row_deletable=False,
-                         # cell_selectable=False,
-                         # selected_columns=[],
-                         # selected_rows=[],
-                         # page_action="native",
-                         # page_current=0,
-                         # page_size=10,
                          merge_duplicate_headers=True,
-                         # style_table={
-                         #               "overflowY": "auto"
-
-                         #               },
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
                          style_cell={'font-family': 'Bahnschrift',
@@ -487,7 +374,7 @@ layout = html.Div(children=[
                      f'The following table shows the vacancy rates from 2016 to 2023.',
                      style={'fontFamily': 'Open Sans, sans-serif'}
                  ),
-                 dbc.Button("Export", id="export-table-3a", className="mb-3", color="primary"),
+                 dbc.Button("Export", id="export-table-3", className="mb-3", color="primary"),
                  dash_table.DataTable(
                      id='output_3a',
                      merge_duplicate_headers=True,
@@ -507,7 +394,7 @@ layout = html.Div(children=[
                      f'The following table shows the change in vacancy rates.',
                      style={'fontFamily': 'Open Sans, sans-serif'}
                  ),
-                 dbc.Button("Export", id="export-table-3b", className="mb-3", color="primary"),
+                 dbc.Button("Export", id="export-table-4", className="mb-3", color="primary"),
 
                  dash_table.DataTable(
                      id='output_3b',
@@ -561,7 +448,7 @@ layout = html.Div(children=[
                      f'-	Data source: <add link>. ',
                      style={'fontFamily': 'Open Sans, sans-serif'}
                  ),
-                 dbc.Button("Export", id="export-table-5a", className="mb-3", color="primary"),
+                 dbc.Button("Export", id="export-table-7", className="mb-3", color="primary"),
                  dash_table.DataTable(
                      id='output_5a',
                      merge_duplicate_headers=True,
@@ -581,7 +468,7 @@ layout = html.Div(children=[
                      f'-	Data source: <add link>.',
                      style={'fontFamily': 'Open Sans, sans-serif'}
                  ),
-                 dbc.Button("Export", id="export-table-5b", className="mb-3", color="primary"),
+                 dbc.Button("Export", id="export-table-8", className="mb-3", color="primary"),
                  dash_table.DataTable(
                      id='output_5b',
                      merge_duplicate_headers=True,
@@ -638,9 +525,6 @@ layout = html.Div(children=[
                      dbc.Button("Export", id="export-table-10", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_7',
-                         columns=[{"name": col, "id": col, "deletable": False, "selectable": False} for col in
-                                  output_7_for_dash.columns],
-                         data=output_7_for_dash.to_dict('records'),
                          merge_duplicate_headers=True,
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
@@ -688,9 +572,6 @@ layout = html.Div(children=[
                      dbc.Button("Export", id="export-table-11", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_8',
-                         columns=[{"name": col, "id": col, "deletable": False, "selectable": False} for col in
-                                  output_8_for_dash.columns],
-                         data=output_8_for_dash.to_dict('records'),
                          merge_duplicate_headers=True,
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
@@ -717,7 +598,7 @@ layout = html.Div(children=[
                          f'The following tables shows the Housing starts by structural type and tenure.',
                          style={'fontFamily': 'Open Sans, sans-serif'}
                      ),
-                     dbc.Button("Export", id="export-table-4a", className="mb-3", color="primary"),
+                     dbc.Button("Export", id="export-table-5", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_4a',
                          merge_duplicate_headers=True,
@@ -733,7 +614,7 @@ layout = html.Div(children=[
 
                                        }
                      ),
-                     dbc.Button("Export", id="export-table-4b", className="mb-3", color="primary"),
+                     dbc.Button("Export", id="export-table-6", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_4b',
                          merge_duplicate_headers=True,
@@ -903,7 +784,6 @@ def table_generator(geo, df, table_id):
         )
         filtered_df.drop('2016', axis=1, inplace=True)
     elif table_id == 'output_3a':
-        print("DF 3", filtered_df.shape, filtered_df.columns)
         filtered_df = filtered_df[filtered_df['Metric']== 'Vacancy Rate']
 
     elif table_id == 'output_3b':
@@ -934,6 +814,10 @@ def table_generator(geo, df, table_id):
         filtered_df = filtered_df.replace('15to24', '15-24').replace('25to34', '25-34'). \
             replace('35to44', '35-44').replace('45to54', '45-54').replace('55to64', '55-64'). \
             replace('65to74', '65-74')
+        
+    elif ((table_id == 'output_4a') or (table_id == 'output_4b')):
+        new_header = ['Housing starts by structural type (2016-2023)'] * (len(filtered_df.columns))
+        filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
 
     elif table_id == 'output_8':
         filtered_df = filtered_df.melt(id_vars=filtered_df.columns[:5], var_name="Metric", value_name="2021")
@@ -999,9 +883,14 @@ def update_output_2a(geo, geo_c, scale, selected_columns):
     # Generating table
     table = table_generator(geo, output_2, 'output_2a')
     table = table[table['Metric'] == 'Avg Monthly Rent']
+    
+
 
     table.drop_duplicates(inplace=True)
-    table = number_formatting(table, table.columns[1:], 0)
+
+    if not table.empty:
+        table.loc[table['Metric'] == 'Avg Monthly Rent', table.columns[1:]] = \
+        table.loc[table['Metric'] == 'Avg Monthly Rent', table.columns[1:]].applymap(lambda x: f"{x:,.0f}$")
 
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
@@ -1050,8 +939,9 @@ def update_output_2b(geo, geo_c, scale, selected_columns):
     percent_conditions = {'Metric': lambda x: x == '% Change in Avg Rent'}
     table = percent_formatting(table, table.columns[1:], mult_flag=0, conditions=percent_conditions)
 
-    number_conditions = {'Metric': lambda x: x == 'Change in Avg Rent'}
-    table = number_formatting(table, table.columns[1:], 0, conditions=number_conditions)
+    if not table.empty:
+        table.loc[table['Metric'] == 'Change in Avg Rent', table.columns[1:]] = \
+        table.loc[table['Metric'] == 'Change in Avg Rent', table.columns[1:]].applymap(lambda x: f"{x:,.0f}$")
 
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
@@ -1104,7 +994,7 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
         x=table.columns[1:],
         y=y_vals1,
         marker_color='#88D9FA',
-        hovertemplate=' Year: %{x} <br> ' + '%{y:,.0f}<extra></extra>'
+        hovertemplate=' Year: %{x} <br> ' + '%{y:,.0f}$<extra></extra>'
     ))
 
     # Plot layout settings
@@ -1128,6 +1018,8 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
     )
     fig1.update_yaxes(
         tickfont=dict(size=10),
+        tickformat = ".0f",
+        ticksuffix="$",  # Adds % sign to each tick
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Change in Average Monthly Rent ($)'
@@ -1164,7 +1056,8 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
     )
     fig2.update_yaxes(
         tickfont=dict(size=10),
-        # range = [min(table['']),100]
+        tickformat = ".0f",
+        ticksuffix="%",  # Adds % sign to each tick
         # fixedrange = True,
         title='Percentage change in Average Monthly Rent ($)'
     )
@@ -1190,7 +1083,7 @@ def update_output_3a(geo, geo_c, scale, selected_columns):
     # Generating table
     table = table_generator(geo, output_3, 'output_3a')
     #table.drop_duplicates(inplace=True)
-    table = percent_formatting(table, table.columns[1:], 0) #is this still working?
+    table = percent_formatting(table, table.columns[1:], 1)
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
     table = table.rename(columns={'Metric': ''}).replace('Vacancy Rate','Vacancy Rate %')
@@ -1270,8 +1163,8 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
 
     # Generating plot
     fig1 = go.Figure()
-    y_vals1 = table_VacancyRate.values.flatten().tolist()[1:]
-    y_vals2 = table_ChangeInVacancyRate.values.flatten().tolist()[1:]
+    y_vals1 = [y * 100 for y in table_VacancyRate.values.flatten().tolist()[1:]]
+    y_vals2 = [y * 100 for y in table_ChangeInVacancyRate.values.flatten().tolist()[1:]]
 
     fig1.add_trace(go.Bar(
         x=table_VacancyRate.columns[1:],
@@ -1301,6 +1194,8 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
     )
     fig1.update_yaxes(
         tickfont=dict(size=10),
+        tickformat = ".0f",
+        ticksuffix="%",  # Adds % sign to each tick
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Vacancy Rates (%)'
@@ -1360,13 +1255,23 @@ def update_output_4a(geo, geo_c, scale, selected_columns):
     # Generating table
     table = table_generator(geo, output_4a, 'output_4a')
     table.drop_duplicates(inplace=True)
+
+    table = number_formatting(table, list(table.columns[1:]), 0)
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
     table = table.rename(columns={'Metric': ''})
 
     # Generating callback output to update table
 
-    table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
+    table_columns = [{"name": [geo, col1, col2], "id": f"{col1}_{col2}"} for col1, col2 in table.columns]
+    table_data = [
+        {
+            **{f"{x1}_{x2}": y for (x1, x2), y in data},
+        }
+        for (n, data) in [
+            *enumerate([list(x.items()) for x in table.T.to_dict().values()])
+        ]
+    ]
     style_cell_conditional = [
                                  {
                                      'if': {'column_id': table_columns[0]['id']},
@@ -1381,8 +1286,7 @@ def update_output_4a(geo, geo_c, scale, selected_columns):
                                      'textAlign': 'center'
                                  } for c in table_columns[1:]
                              ]
-    return table_columns, table.to_dict(
-        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+    return table_columns, table_data, style_data_conditional, style_cell_conditional, style_header_conditional
 
 
 @callback(
@@ -1400,7 +1304,7 @@ def update_output_4b(geo, geo_c, scale, selected_columns):
     geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
     # Generating table
     table = table_generator(geo, output_4b, 'output_4b')
-    table = number_formatting(table, ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023'], 0)
+    table = number_formatting(table, list(table.columns[1:]), 0)
 
     table.drop_duplicates(inplace=True)
     style_data_conditional = generate_style_data_conditional(table)
@@ -1409,7 +1313,15 @@ def update_output_4b(geo, geo_c, scale, selected_columns):
 
     # Generating callback output to update table
 
-    table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
+    table_columns = [{"name": [geo, col1, col2], "id": f"{col1}_{col2}"} for col1, col2 in table.columns]
+    table_data = [
+        {
+            **{f"{x1}_{x2}": y for (x1, x2), y in data},
+        }
+        for (n, data) in [
+            *enumerate([list(x.items()) for x in table.T.to_dict().values()])
+        ]
+    ]
     style_cell_conditional = [
                                  {
                                      'if': {'column_id': table_columns[0]['id']},
@@ -1424,8 +1336,7 @@ def update_output_4b(geo, geo_c, scale, selected_columns):
                                      'textAlign': 'center'
                                  } for c in table_columns[1:]
                              ]
-    return table_columns, table.to_dict(
-        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+    return table_columns, table_data, style_data_conditional, style_cell_conditional, style_header_conditional
 
 
 # stacked bar chart for output4a
@@ -1442,44 +1353,41 @@ def update_geo_figure_4a(geo, geo_c, scale, refresh):
     table = table_generator(geo, output_4a, 'output_4a')
     # Generating plot
     fig1 = go.Figure()
-    y_vals1 = table[table['Metric']=='Apartment'].values.flatten().tolist()[1:]
-    y_vals2 = table[table['Metric']=='Row'].values.flatten().tolist()[1:]
-    y_vals3 = table[table['Metric']=='Semi-detached'].values.flatten().tolist()[1:]
-    y_vals4 = table[table['Metric']=='Single-detached'].values.flatten().tolist()[1:]
+    y_vals1 = table[table[table.columns[0]]=='Apartment'].values.flatten().tolist()[1:]
+    y_vals2 = table[table[table.columns[0]]=='Row'].values.flatten().tolist()[1:]
+    y_vals3 = table[table[table.columns[0]]=='Semi-detached'].values.flatten().tolist()[1:]
+    y_vals4 = table[table[table.columns[0]]=='Single-detached'].values.flatten().tolist()[1:]
 
     fig1.add_trace(go.Bar(
-        x=table.columns[1:],
+        x=list(table.columns.get_level_values(1))[1:],
         y=y_vals1,
         name= 'Apartment',
        marker_color = hh_colors[3],
-        hovertemplate=' %{x} - <br> number of Apartments =' + '%{y:,0f}<extra></extra>'
+        hovertemplate=' %{x} Apartments - <br>' + ' %{y:,.0f}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
-        x=table.columns[1:],
+        x=list(table.columns.get_level_values(1))[1:],
         y=y_vals2,
         name='Row',
         marker_color=hh_colors[2],
-        hovertemplate=' %{x} - <br> number of Row =' + '%{y:,0f}<extra></extra>'
+        hovertemplate=' %{x} Row - <br>' + ' %{y:,.0f}<extra></extra>'
 
-        #hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
-        x=table.columns[1:],
+        x=list(table.columns.get_level_values(1))[1:],
         y=y_vals3,
         name='Semi-detached',
         marker_color = hh_colors[1],
-        hovertemplate=' %{x} - <br> number of Semi-detached =' + '%{y:,0f}<extra></extra>'
+        hovertemplate=' %{x} Semi-detached - <br>' + ' %{y:,0f}<extra></extra>'
 
-        # hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
-        x=table.columns[1:],
+        x=list(table.columns.get_level_values(1))[1:],
         y=y_vals4,
         name='Single-detached',
         marker_color= hh_colors[0],
-        hovertemplate=' %{x} - <br> number of Single-detached =' + '%{y:,0f}<extra></extra>'
+        hovertemplate=' %{x} Single-detached - <br>' + ' %{y:,0f}<extra></extra>'
 
-        # hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
     ))
 
     # Plot layout settings
@@ -1506,6 +1414,7 @@ def update_geo_figure_4a(geo, geo_c, scale, refresh):
     )
     fig1.update_yaxes(
         tickfont=dict(size=10),
+        tickformat = ",.0f",
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Housing Starts'
@@ -1528,46 +1437,47 @@ def update_geo_figure_4b(geo, geo_c, scale, refresh):
     table = table_generator(geo, output_4b, 'output_4b')
     # Generating plot
     fig1 = go.Figure()
-    y_vals1 = table[table['Metric']=='Owner'].values.flatten().tolist()[1:]
-    y_vals2 = table[table['Metric']=='Rental'].values.flatten().tolist()[1:]
-    y_vals3 = table[table['Metric']=='Condo'].values.flatten().tolist()[1:]
-    y_vals4 = table[table['Metric']=='Co-op'].values.flatten().tolist()[1:]
-    y_vals5 = table[table['Metric'] == 'N/A'].values.flatten().tolist()[1:]
+    y_vals1 = table[table[table.columns[0]]=='Owner'].values.flatten().tolist()[1:]
+    y_vals2 = table[table[table.columns[0]]=='Rental'].values.flatten().tolist()[1:]
+    y_vals3 = table[table[table.columns[0]]=='Condo'].values.flatten().tolist()[1:]
+    y_vals4 = table[table[table.columns[0]]=='Co-op'].values.flatten().tolist()[1:]
+    y_vals5 = table[table[table.columns[0]] == 'N/A'].values.flatten().tolist()[1:]
 
     fig1.add_trace(go.Bar(
-        x=table.columns[1:],
+        x=list(table.columns.get_level_values(1))[1:],
         y=y_vals1,
         name= 'Owner',
-        marker_color= hh_colors[4]
-        #hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
+        marker_color= hh_colors[4],
+        hovertemplate=' %{x} Owner - <br>' + ' %{y:,.0f}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
-        x=table.columns[1:],
+        x=list(table.columns.get_level_values(1))[1:],
         y=y_vals2,
         name='Rental',
-        marker_color= hh_colors[3]
-        #hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
+        marker_color= hh_colors[3],
+        hovertemplate=' %{x} Rental - <br>' + ' %{y:,.0f}<extra></extra>'
+
     ))
     fig1.add_trace(go.Bar(
-        x=table.columns[1:],
+        x=list(table.columns.get_level_values(1))[1:],
         y=y_vals3,
         name='Condo',
-        marker_color= hh_colors[2]
-        # hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
+        marker_color= hh_colors[2],
+        hovertemplate=' %{x} Condo - <br>' + ' %{y:,.0f}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
-        x=table.columns[1:],
+        x=list(table.columns.get_level_values(1))[1:],
         y=y_vals4,
         name='Co-op',
-        marker_color= hh_colors[1] ,
-        # hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
+        marker_color= hh_colors[1],
+        hovertemplate=' %{x} Co-op - <br>' + ' %{y:,.0f}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
-        x=table.columns[1:],
+        x=list(table.columns.get_level_values(1))[1:],
         y=y_vals5,
         name='N/A',
-        marker_color= hh_colors[0] ,
-        # hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
+        marker_color= hh_colors[0],
+        hovertemplate=' %{x} N/A - <br>' + ' %{y:,.0f}<extra></extra>'
     ))
 
     # Plot layout settings
@@ -1592,6 +1502,7 @@ def update_geo_figure_4b(geo, geo_c, scale, refresh):
     )
     fig1.update_yaxes(
         tickfont=dict(size=10),
+        tickformat = ",.0f",
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Housing Starts'
@@ -1617,8 +1528,9 @@ def update_output_5a(geo, geo_c, scale, selected_columns):
     # Generating table
     table = table_generator(geo, output_5a, 'output_5a')
     table = number_formatting(table, ['2016', '2021', '2021 - 2016'], 0)
-    table = percent_formatting(table, ['% change in # of HH in CHN by tenure'], 0)
+    table = percent_formatting(table, ['% change in # of HH in CHN by tenure'], 1)
     table.drop_duplicates(inplace=True)
+
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
     table = table.rename(columns={'Metric': ''})
@@ -1659,8 +1571,8 @@ def update_output_5b(geo, geo_c, scale, selected_columns):
     geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
     # Generating table
     table = table_generator(geo, output_5b, 'output_5b')
-    table = number_formatting(table, ['2016', '2021', '2021 - 2016'], 2)
-    #table = percent_formatting(table, ['% change in # of HH in CHN by tenure'], 0)
+    table = number_formatting(table, ['2021 - 2016'], 1)
+    table = percent_formatting(table, ['2016', '2021'], 1)
     table.drop_duplicates(inplace=True)
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
@@ -1708,15 +1620,15 @@ def update_geo_figure_5a(geo, geo_c, scale, refresh):
         x=["Owner", "Renter"],
         y=y_vals1,
         name= '2016',
-        marker_color='#39C0F7',
-        hovertemplate='%{x} - ' + '%{y: ,0f}<extra></extra>' #TODO: update comma formatting
+        marker_color='#88D9FA',
+        hovertemplate='2016 %{x} - <br>' + '%{y:,.0f}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
         x=["Owner",  "Renter"],
         y=y_vals2,
         name='2021',
-        marker_color='#3DB54A',
-        hovertemplate='%{x} - ' + '%{y: ,0f}<extra></extra>' #TODO: update comma formatting
+        marker_color='#93CD8A',
+        hovertemplate='2021 %{x} - <br>' + '%{y:,.0f}<extra></extra>'
     ))
 
     # Plot layout settings
@@ -1741,6 +1653,7 @@ def update_geo_figure_5a(geo, geo_c, scale, refresh):
     )
     fig1.update_yaxes(
         tickfont=dict(size=10),
+        tickformat = ",.0f",
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Number of Households'
@@ -1762,22 +1675,23 @@ def update_geo_figure_5b(geo, geo_c, scale, refresh):
     table = table_generator(geo, output_5b, 'output_5b')
     # Generating plot
     fig1 = go.Figure()
-    y_vals1 = table['2016'].values.flatten().tolist()
-    y_vals2 = table['2021'].values.flatten().tolist()
+    y_vals1 = [y * 100 for y in table['2016'].values.flatten().tolist()]
+    y_vals2 = [y * 100 for y in table['2021'].values.flatten().tolist()]
+    
 
     fig1.add_trace(go.Bar(
         x=["Owner", "Renter"],
-        y=y_vals1,
+        y=y_vals1 * 100,
         name= '2016',
-        marker_color= '#39C0F7',
-        hovertemplate='%{x} - ' + '%{y: .2f}%<extra></extra>' #TODO: update comma formatting
+        marker_color= '#88D9FA',
+        hovertemplate='2016 %{x} - <br>' + '%{y:.2f}%<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
         x=["Owner",  "Renter"],
-        y=y_vals2,
+        y=y_vals2  * 100,
         name='2021',
-        marker_color='#3EB549',
-        hovertemplate='%{x} - ' + '%{y: .2f}%<extra></extra>' #TODO: update comma formatting
+        marker_color='#93CD8A',
+        hovertemplate='2021 %{x} - <br>' + '%{y:.2f}%<extra></extra>'
     ))
 
     # Plot layout settings
@@ -1802,6 +1716,8 @@ def update_geo_figure_5b(geo, geo_c, scale, refresh):
     )
     fig1.update_yaxes(
         tickfont=dict(size=10),
+        tickformat = ".0f",
+        ticksuffix="%",  # Adds % sign to each tick
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Number of Households'
@@ -2117,7 +2033,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         x=table[table.columns[0]].unique(),
         y=y_vals1_1,
         name='2016',
-        marker_color='#39C0F7',
+        marker_color='#88D9FA',
         hovertemplate=' Age Group: %{x} <br> ' + '%{y:.2f}%<extra></extra>'
     ))
 
@@ -2125,7 +2041,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         x=table[table.columns[0]].unique(),
         y=y_vals1_2,
         name='2021',
-        marker_color='#3DB54A',
+        marker_color='#93CD8A',
         hovertemplate=' Age Group: %{x} <br> ' + '%{y:.2f}%<extra></extra>'
     ))
 
@@ -2146,9 +2062,10 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
     )
     fig1.update_yaxes(
         tickfont=dict(size=10),
-        # range = [min(table['']),100]
+        tickformat = ".0f",
+        ticksuffix="%",  # Adds % sign to each tick
         # fixedrange = True,
-        title='Change in Average Monthly Rent ($)'
+        title=' % Change in Average Monthly Rent ($)'
     )
 
     y_vals2 = table[table.columns[7]].tolist()
