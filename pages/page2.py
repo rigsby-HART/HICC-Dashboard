@@ -794,21 +794,22 @@ def table_generator(geo, df, table_id):
                      '2023': '2022-2023'}
         )  #.rename('Change in Vacancy Rate', 'Change in Vacancy Rate (percentage points')
         filtered_df.drop('2016', axis=1, inplace=True)
+        for col in filtered_df.columns[6:]:
+            filtered_df[col] = filtered_df[col] * 100
 
     elif table_id == 'output_6':
         filtered_df = filtered_df[filtered_df['Metric'].isin(['Primary Rental Units', 'Secondary Rental Units'])]
 
     elif ((table_id == 'output_9') or (table_id == 'output_10a') or (table_id == 'output_10b')):
-        if table_id == 'output_9':
-            filtered_df = filtered_df[filtered_df['Age']!= '75plus']
         if (table_id == 'output_10a') or (table_id == 'output_10b'):
             new_header = ['Household Suppression by age of Primary household maintainer -\
                        following BC HNR methodology'] * (len(filtered_df.columns))
             filtered_df = filtered_df.replace('75plus', '75 and older')
         else:
+            filtered_df['Change in Headship Rate between 2016 and 2021'] = filtered_df['Change in Headship Rate between 2016 and 2021'] * 100
             new_header = ['Changes in Headship rate of Primary Household Maintainer (PHM) \
                           by age between 2016 and 2021'] * (len(filtered_df.columns))
-            filtered_df = filtered_df.replace('75to84', '75-84').replace('85plus', '85 and older')
+            filtered_df = filtered_df[filtered_df['Age']!= '75plus'].replace('75to84', '75-84').replace('85plus', '85 and older')
 
         filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
         filtered_df = filtered_df.replace('15to24', '15-24').replace('25to34', '25-34'). \
@@ -841,6 +842,8 @@ def number_formatting(df, col_list, precision, conditions={}):
             for col in col_list:
                 if precision == 0:
                     row[col] = '{0:,.0f}'.format(row[col]) if pd.notnull(row[col]) and row[col] != 'n/a' else row[col]
+                elif precision == 1:
+                    row[col] = '{0:,.1f}'.format(row[col]) if pd.notnull(row[col]) and row[col] != 'n/a' else row[col]    
                 else:
                     row[col] = '{0:,.2f}'.format(row[col]) if pd.notnull(row[col]) and row[col] != 'n/a' else row[col]
         return row
@@ -857,6 +860,8 @@ def percent_formatting(df, col_list, mult_flag, conditions={}):
                     row[col] = f"{row[col]:.0f}%" if pd.notna(row[col]) and row[col] != 'n/a' else row[col]
                 elif mult_flag == 1:
                     row[col] = f"{row[col] * 100:.1f}%" if pd.notna(row[col]) and row[col] != 'n/a' else row[col]
+                elif mult_flag == 2:
+                    row[col] = f"{row[col]:.1f}%" if pd.notna(row[col]) and row[col] != 'n/a' else row[col]
                 else:
                     row[col] = f"{row[col] * 100:.2%}" if pd.notnull(row[col]) and row[col] != 'n/a' else row[col]
         return row
@@ -937,7 +942,7 @@ def update_output_2b(geo, geo_c, scale, selected_columns):
 
     table.drop_duplicates(inplace=True)
     percent_conditions = {'Metric': lambda x: x == '% Change in Avg Rent'}
-    table = percent_formatting(table, table.columns[1:], mult_flag=0, conditions=percent_conditions)
+    table = percent_formatting(table, table.columns[1:], mult_flag=2, conditions=percent_conditions)
 
     if not table.empty:
         table.loc[table['Metric'] == 'Change in Avg Rent', table.columns[1:]] = \
@@ -1032,7 +1037,7 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
         x=table.columns[1:],
         y=y_vals2,
         marker_color='#93CD8A',
-        hovertemplate=' Year: %{x} <br> ' + '%{y:.2f}%<extra></extra>'
+        hovertemplate=' Year: %{x} <br> ' + '%{y:.1f}%<extra></extra>'
     ))
 
     # Plot layout settings
@@ -1123,7 +1128,7 @@ def update_output_3b(geo, geo_c, scale, selected_columns):
     #table.drop_duplicates(inplace=True)
     #table = percent_formatting(table, table.columns[1:], 0)
     #number_conditions = {'Metric': lambda x: x == 'Change in Vacancy Rate'}
-    table = number_formatting(table, table.columns[1:], 2)
+    table = number_formatting(table, table.columns[1:], 1)
 
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
@@ -1164,7 +1169,7 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
     # Generating plot
     fig1 = go.Figure()
     y_vals1 = [y * 100 for y in table_VacancyRate.values.flatten().tolist()[1:]]
-    y_vals2 = [y * 100 for y in table_ChangeInVacancyRate.values.flatten().tolist()[1:]]
+    y_vals2 = table_ChangeInVacancyRate.values.flatten().tolist()[1:]
 
     fig1.add_trace(go.Bar(
         x=table_VacancyRate.columns[1:],
@@ -1571,6 +1576,8 @@ def update_output_5b(geo, geo_c, scale, selected_columns):
     geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
     # Generating table
     table = table_generator(geo, output_5b, 'output_5b')
+
+    table['2021 - 2016'] = table['2021 - 2016'] * 100
     table = number_formatting(table, ['2021 - 2016'], 1)
     table = percent_formatting(table, ['2016', '2021'], 1)
     table.drop_duplicates(inplace=True)
@@ -1684,14 +1691,14 @@ def update_geo_figure_5b(geo, geo_c, scale, refresh):
         y=y_vals1 * 100,
         name= '2016',
         marker_color= '#88D9FA',
-        hovertemplate='2016 %{x} - <br>' + '%{y:.2f}%<extra></extra>'
+        hovertemplate='2016 %{x} - <br>' + '%{y:.1f}%<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
         x=["Owner",  "Renter"],
         y=y_vals2  * 100,
         name='2021',
         marker_color='#93CD8A',
-        hovertemplate='2021 %{x} - <br>' + '%{y:.2f}%<extra></extra>'
+        hovertemplate='2021 %{x} - <br>' + '%{y:.1f}%<extra></extra>'
     ))
 
     # Plot layout settings
@@ -1974,7 +1981,7 @@ def update_output_9(geo, geo_c, scale, selected_columns):
     # print(list(table.columns[[1, 2, 4, 5]]))
 
     table = percent_formatting(table, (table.columns[::3][1:]).tolist(), mult_flag=1)
-    table = number_formatting(table, [table.columns[-1]], 3)
+    table = number_formatting(table, [table.columns[-1]], 1)
     table = number_formatting(table, list(table.columns[[1, 2, 4, 5]]), 0)
 
     style_data_conditional = generate_style_data_conditional(table)
@@ -2034,7 +2041,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         y=y_vals1_1,
         name='2016',
         marker_color='#88D9FA',
-        hovertemplate=' Age Group: %{x} <br> ' + '%{y:.2f}%<extra></extra>'
+        hovertemplate=' Age Group: %{x} <br> ' + '%{y:.1f}%<extra></extra>'
     ))
 
     fig1.add_trace(go.Bar(
@@ -2042,7 +2049,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         y=y_vals1_2,
         name='2021',
         marker_color='#93CD8A',
-        hovertemplate=' Age Group: %{x} <br> ' + '%{y:.2f}%<extra></extra>'
+        hovertemplate=' Age Group: %{x} <br> ' + '%{y:.1f}%<extra></extra>'
     ))
 
     # Plot layout settings
@@ -2075,7 +2082,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         x=table[table.columns[0]].unique(),
         y=y_vals2,
         marker_color='#88D9FA',
-        hovertemplate=' Age Group: %{x} <br> ' + '%{y:.2f}<extra></extra>'
+        hovertemplate=' Age Group: %{x} <br> ' + '%{y:.1f}<extra></extra>'
     ))
 
     # Plot layout settings
