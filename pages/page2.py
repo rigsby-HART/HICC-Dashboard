@@ -18,7 +18,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 engine_new = create_engine('sqlite:///sources//hicc.db')
 engine_old = create_engine('sqlite:///sources//old_hart.db')
 
-
+output_1 = pd.read_sql_table('output_1a', engine_new.connect()) # Fetching current transit data, future stored in 2b
 output_2 = pd.read_sql_table('output_2', engine_new.connect())
 output_3 = pd.read_sql_table('output_3', engine_new.connect())
 output_4a = pd.read_sql_table('output_4a', engine_new.connect())
@@ -122,10 +122,24 @@ layout = html.Div(children=[
                      html.Div([
                          html.H6(
                              '-	Data Point 1: Counts and percentages of households within 800m and 200m of rail/light-rail transit station (applies only to municipalities with 2021 population of 30,000+, excluding BC and Quebec) ',
-                             style={'fontFamily': 'Open Sans, sans-serif'})
-                     ], className='muni-reg-text-lgeo'
-                     ),
-                 ], className='pg2-output1-plot-box-lgeo'
+                             style={'fontFamily': 'Open Sans, sans-serif'}),
+                         dbc.Button("Export", id="export-table-15", className="mb-3", color="primary"),
+                         dash_table.DataTable(
+                         id='output_1',
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+
+                                       }
+                     ), html.Div(id='output_1-container')
+                     ], className='pg2-output1-lgeo'
                  ),
 
                  # 2. HICC Section 3.3, data point 9 and 10. Output 9
@@ -683,9 +697,12 @@ layout = html.Div(children=[
 
              ], className='dashboard-pg2-lgeo'
              ),
-
+    
 ], className='content-container-fullpage'
+                     ),
+                 ], className='pg2-output1-plot-box-lgeo'
 )
+
 
 
 def generate_style_data_conditional(data):
@@ -826,7 +843,11 @@ def table_generator(geo, df, table_id):
     else:
         filtered_df = filtered_df
 
-    table = filtered_df.iloc[:, 5:]
+    if table_id == 'output_1':
+        table = filtered_df.iloc[:, 2:]
+    else:
+        table = filtered_df.iloc[:, 5:]
+
     for index, row in table.iterrows():
         if any('Total' in str(cell) or 'Average' in str(cell) for cell in row.values):
             continue
@@ -870,6 +891,55 @@ def percent_formatting(df, col_list, mult_flag, conditions={}):
 
 
 # Callback for storing selected areas and area scale level
+
+@callback(
+    Output('output_1', 'columns'),
+    Output('output_1', 'data'),
+    Output('output_1', 'style_data_conditional'),
+    Output('output_1', 'style_cell_conditional'),
+    Output('output_1', 'style_header_conditional'),
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('output_1', 'selected_columns'),
+)
+def update_output_1(geo, geo_c, scale, selected_columns):
+    geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
+
+    # Generating table
+    table = table_generator(geo, output_1, 'output_1')
+    
+    table.drop_duplicates(inplace=True)
+    percent_conditions = {'Data': lambda x: x == 'Percentage of all HHs'}
+    table = percent_formatting(table, ['Value'], mult_flag=1, conditions=percent_conditions)
+
+    number_conditions = {'Data': lambda x: x == 'Total'}
+    table = number_formatting(table, ['Value'], 0, conditions=number_conditions)
+
+    style_data_conditional = generate_style_data_conditional(table)
+    style_header_conditional = generate_style_header_conditional(table)
+
+    # Generating callback output to update table
+
+    table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
+
+    style_cell_conditional = [
+                                 {
+                                     'if': {'column_id': table_columns[0]['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'left',
+                                     "maxWidth": "50px"
+                                 }
+                             ] + [
+                                 {
+                                     'if': {'column_id': c['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'center'
+                                 } for c in table_columns[1:]
+                             ]
+    return table_columns, table.to_dict(
+        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+
 
 @callback(
     Output('output_2a', 'columns'),

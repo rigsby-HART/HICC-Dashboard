@@ -12,14 +12,50 @@ required_cols = ['Geography', 'GEO_TYPE_ABBR_EN', 'ALT_GEO_CODE_EN', 'PR_CODE_EN
 test_geo = ["Bay Roberts", "Conception Bay South", "St. John's", "Corner Brook", "Sylvan Lake"]
 
 class PrepareTables:
-    def __init__(self, master_data_filepath):
+    def __init__(self, master_data_filepath, transit_filepath):
         self.master_data_filepath = master_data_filepath
+        self.transit_filepath = transit_filepath
 
         print('Reading Input master data...')
         self.master_data = PrepareTables.clean_input_data(
             pd.read_excel(self.master_data_filepath, sheet_name='Master - All geos', header=[1]))
         
         print('Input master data loaded...')
+
+        self.transit_data = pd.read_csv(self.transit_filepath)
+
+
+    def prepare_output_1(self, future=''):
+        print("Preparing Output 1")
+
+        output_1_columns = ['DAs_2021Centroids_200mTransitStatistics.CSDUID', f'200m{future}Transit_Access', 
+                             f'200m{future}Transit_PerHHAccess', 
+                            f'800m{future}Transit_Access', f'800m{future}Transit_PerHHAccess']
+        
+        try:
+            output_1 = self.transit_data[output_1_columns].rename(columns={
+                'DAs_2021Centroids_200mTransitStatistics.CSDUID': 'ALT_GEO_CODE_EN'})
+
+        except KeyError:
+            print('Some columns from output 1 were not found')
+
+        output_1_long = output_1.melt(id_vars=output_1.columns[0], var_name="Data", value_name="Value")
+        output_1_long['Characteristic'] = np.where(output_1_long['Data'].str.contains('200'), 
+                                                    'Households within 200m of a rail/light-rail transit station (#)',
+                                                'Households within 800m of a rail/light-rail transit station (#)')
+
+        output_1_final = output_1_long.sort_values(by=['ALT_GEO_CODE_EN']).replace(
+            f'200m{future}Transit_Access', 'Total').replace(f'800m{future}Transit_Access', 'Total').replace(
+            f'200m{future}Transit_PerHHAccess', 'Percentage of all HHs').replace(f'800m{future}Transit_PerHHAccess', 
+                                                                                 'Percentage of all HHs')
+        
+        # export to csv
+        output_1_final.to_csv(os.path.join(throughputs_path, f"Output1{future}.csv"))
+        print("Output 1 Successfully created...")
+
+        return output_1_final
+
+        
 
     def prepare_output_2(self):
         print("Preparing Output 2...")

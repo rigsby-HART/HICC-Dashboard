@@ -10,12 +10,14 @@ from PrepareTables import PrepareTables
 
 
 class DBUploader:
-    def __init__(self, master_data_filepath, db_path):
+    def __init__(self, master_data_filepath, transit_filepath, db_path):
         self.master_data_filepath = master_data_filepath
+        self.transit_filepath = transit_filepath
+
         self.db_path = db_path
         
         self.engine = create_engine('sqlite:///' + self.db_path)
-        self.pt = PrepareTables(master_data_filepath)
+        self.pt = PrepareTables(master_data_filepath, transit_filepath)
         self.db_base = declarative_base()
         self.upload_tables()
         self.Session = sessionmaker(bind=self.engine)
@@ -24,6 +26,8 @@ class DBUploader:
 
         
         # Preparing Outputs
+        self.insert_data(self.output_1a, self.Output_1a)
+        self.insert_data(self.output_1b, self.Output_1b)
         self.insert_data(self.output_2, self.Output_2)
         self.insert_data(self.output_3, self.Output_3)
         self.insert_data(self.output_4a, self.Output_4a)
@@ -36,7 +40,6 @@ class DBUploader:
         self.insert_data(self.output_9, self.Output_9)
         self.insert_data(self.output_10a, self.Output_10a)
         self.insert_data(self.output_10b, self.Output_10b)
-
         
 
         print('Database ready....')
@@ -44,6 +47,30 @@ class DBUploader:
 
     def upload_tables(self):
 
+        class Output_1a(self.db_base):
+            __tablename__ = "output_1a"
+            pk = Column(Integer, primary_key=True, comment='primary key')  # Add Primary Key
+
+        self.Output_1a = Output_1a  # Assign the class
+
+        # Fetch and store data
+        self.output_1a = self.pt.prepare_output_1()  # Ensure this returns a DataFrame
+
+        self.add_dynamic_columns(self.Output_1a, self.output_1a, '', 1)
+
+
+        class Output_1b(self.db_base):
+            __tablename__ = "output_1b"
+            pk = Column(Integer, primary_key=True, comment='primary key')  # Add Primary Key
+
+        self.Output_1b = Output_1b  # Assign the class
+
+        # Fetch and store data
+        self.output_1b = self.pt.prepare_output_1('Future')  # Ensure this returns a DataFrame
+
+        self.add_dynamic_columns(self.Output_1b, self.output_1b, '', 1)
+
+        
         class Output_2(self.db_base):
             __tablename__ = "output_2"
             pk = Column(Integer, primary_key=True, comment='primary key')  # Add Primary Key
@@ -210,15 +237,25 @@ class DBUploader:
 
 
 
-    def add_dynamic_columns(self, cls, df, variable_column):
+    def add_dynamic_columns(self, cls, df, variable_column, flag=0):
         df = df.replace('--', np.nan)
         df.columns = df.columns.map(str)
+        
         # Dynamically add columns based on the DataFrame columns
-        for col in df.columns:
-            if col in {'Geography', 'GEO_TYPE_ABBR_EN', f'{variable_column}', 'ALT_GEO_CODE_EN', 'PR_CODE_EN'}:
-                setattr(cls, col, Column(String))
-            else:
-                setattr(cls, col, Column(Float)) 
+        if flag == 0:
+            for col in df.columns:
+                if col in {'Geography', 'GEO_TYPE_ABBR_EN', f'{variable_column}', 'ALT_GEO_CODE_EN', 'PR_CODE_EN'}:
+                    setattr(cls, col, Column(String))
+                else:
+                    setattr(cls, col, Column(Float)) 
+        else:
+            for col in df.columns:
+                if col in {'ALT_GEO_CODE_EN', 'Data', 'Characteristic'}:
+                    setattr(cls, col, Column(String))
+                else:
+                    setattr(cls, col, Column(Float))
+
+            
 
     def insert_data(self, df, PartnerClass):
         # Create a new session
@@ -229,7 +266,6 @@ class DBUploader:
         try:
             for idx, row in df.iterrows():
                 data = {str(k): v for k, v in row.to_dict().items()}
-                # print(data)
                 records.append(PartnerClass(**data))
 
             if records:
