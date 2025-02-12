@@ -60,7 +60,8 @@ app.clientside_callback(
 )
 
 table_functions = {
-    'export-table-15': (update_output_1, "Output1"),
+    'export-table-15': (update_output_1a, "Output1a"),
+    'export-table-16': (update_output_1b, "Output1b"),
     'export-table-1': (update_output_2a, "Output2a"),
     'export-table-2': (update_output_2b, "Output2b"),
     'export-table-3': (update_output_3a, "Output3a"),
@@ -79,7 +80,7 @@ table_functions = {
 
 @app.callback(
     Output("download-dataframe-xlsx", "data"),
-    [Input(f"export-table-{i}", "n_clicks") for i in range(1, 16)] +
+    [Input(f"export-table-{i}", "n_clicks") for i in range(1, 17)] +
     [State('main-area', 'data'), State('comparison-area', 'data'), State('area-scale-store', 'data')],
     prevent_initial_call=True,
 )
