@@ -145,7 +145,8 @@ layout = html.Div(children=[
 
                                        }
 
-                     ), html.Div(id='output_1a-container')
+                     ), html.Div(id='output_1a-container'),
+                     html.Br()
                      ], className='pg2-output1a-lgeo'
                  ),
 
@@ -167,7 +168,8 @@ layout = html.Div(children=[
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
                                        }
-                     ), html.Div(id='output_1b-container')
+                     ), html.Div(id='output_1b-container'),
+                     html.Br()
                      ], className='pg2-output1b-lgeo'
 
 
