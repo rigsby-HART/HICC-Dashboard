@@ -1071,7 +1071,7 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
     fig1.add_trace(go.Bar(
         x=table.columns[1:],
         y=y_vals1,
-        marker_color='#88D9FA',
+        marker_color='#39c0f7',
         hovertemplate=' Year: %{x} <br> ' + '%{y:,.0f}$<extra></extra>'
     ))
 
@@ -1109,7 +1109,7 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
     fig2.add_trace(go.Bar(
         x=table.columns[1:],
         y=y_vals2,
-        marker_color='#93CD8A',
+        marker_color='#3eb549',
         hovertemplate=' Year: %{x} <br> ' + '%{y:.1f}%<extra></extra>'
     ))
 
@@ -1247,7 +1247,7 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
     fig1.add_trace(go.Bar(
         x=table_VacancyRate.columns[1:],
         y=y_vals1,
-        marker_color='#39C0F7',
+        marker_color='#39c0f7',
         hovertemplate=' Year: %{x} <br> ' + '%{y:,.2f}%<extra></extra>'
     ))
 
@@ -1284,7 +1284,7 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
     fig2.add_trace(go.Bar(
         x=table_ChangeInVacancyRate.columns[1:],
         y=y_vals2,
-        marker_color='#93CD8A',
+        marker_color='#3eb549',
         hovertemplate=' Year: %{x} <br> ' + '%{y:,.2f}<extra></extra>' ## TODO multiply by 100
     ))
 
@@ -1525,14 +1525,14 @@ def update_geo_figure_4b(geo, geo_c, scale, refresh):
         x=list(table.columns.get_level_values(1))[1:],
         y=y_vals1,
         name= 'Owner',
-        marker_color= hh_colors[4],
+        marker_color= '#39c0f7',
         hovertemplate=' %{x} Owner - <br>' + ' %{y:,.0f}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
         x=list(table.columns.get_level_values(1))[1:],
         y=y_vals2,
         name='Rental',
-        marker_color= hh_colors[3],
+        marker_color= "#3eb549",
         hovertemplate=' %{x} Rental - <br>' + ' %{y:,.0f}<extra></extra>'
 
     ))
@@ -1540,21 +1540,21 @@ def update_geo_figure_4b(geo, geo_c, scale, refresh):
         x=list(table.columns.get_level_values(1))[1:],
         y=y_vals3,
         name='Condo',
-        marker_color= hh_colors[2],
+        marker_color= "#b0e6fc",
         hovertemplate=' %{x} Condo - <br>' + ' %{y:,.0f}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
         x=list(table.columns.get_level_values(1))[1:],
         y=y_vals4,
         name='Co-op',
-        marker_color= hh_colors[1],
+        marker_color= "#77cea3",
         hovertemplate=' %{x} Co-op - <br>' + ' %{y:,.0f}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
         x=list(table.columns.get_level_values(1))[1:],
         y=y_vals5,
         name='N/A',
-        marker_color= hh_colors[0],
+        marker_color= "#75d3fa",
         hovertemplate=' %{x} N/A - <br>' + ' %{y:,.0f}<extra></extra>'
     ))
 
@@ -1700,14 +1700,14 @@ def update_geo_figure_5a(geo, geo_c, scale, refresh):
         x=["Owner", "Renter"],
         y=y_vals1,
         name= '2016',
-        marker_color='#88D9FA',
+        marker_color='#39c0f7',
         hovertemplate='2016 %{x} - <br>' + '%{y:,.0f}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
         x=["Owner",  "Renter"],
         y=y_vals2,
         name='2021',
-        marker_color='#93CD8A',
+        marker_color='#3eb549',
         hovertemplate='2021 %{x} - <br>' + '%{y:,.0f}<extra></extra>'
     ))
 
@@ -1763,14 +1763,14 @@ def update_geo_figure_5b(geo, geo_c, scale, refresh):
         x=["Owner", "Renter"],
         y=y_vals1 * 100,
         name= '2016',
-        marker_color= '#88D9FA',
+        marker_color= '#39c0f7',
         hovertemplate='2016 %{x} - <br>' + '%{y:.1f}%<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
         x=["Owner",  "Renter"],
         y=y_vals2  * 100,
         name='2021',
-        marker_color='#93CD8A',
+        marker_color='#3eb549',
         hovertemplate='2021 %{x} - <br>' + '%{y:.1f}%<extra></extra>'
     ))
 
@@ -1870,7 +1870,7 @@ def update_geo_figure_6(geo, geo_c, scale, refresh):
                         values = table['2021'],
                         textinfo = 'percent',
                         pull=[0.1, 0],
-                        marker_colors=['#D7F3FD', '#044762'],
+                        marker_colors=['#39c0f7', '#3eb549'],
                         hovertemplate=' %{label}</b><br>' + 'Value: %{value:,.0f}<br>' + '<extra></extra>'
                 ))
 
@@ -1960,7 +1960,7 @@ def update_geo_figure_7(geo, geo_c, scale, refresh):
         values=table['2021'],
         textinfo='percent',
         pull=[0.1, 0],
-        marker_colors=['#D7F3FD', '#044762'],
+        marker_colors=['#39c0f7', '#3eb549'],
         hovertemplate=' %{label}</b><br>' + 'Value: %{value:,.0f}<br>' + '<extra></extra>'
     ))
 
@@ -2113,7 +2113,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         x=table[table.columns[0]].unique(),
         y=y_vals1_1,
         name='2016',
-        marker_color='#88D9FA',
+        marker_color='#39c0f7',
         hovertemplate=' Age Group: %{x} <br> ' + '%{y:.1f}%<extra></extra>'
     ))
 
@@ -2121,7 +2121,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         x=table[table.columns[0]].unique(),
         y=y_vals1_2,
         name='2021',
-        marker_color='#93CD8A',
+        marker_color='#3eb549',
         hovertemplate=' Age Group: %{x} <br> ' + '%{y:.1f}%<extra></extra>'
     ))
 
@@ -2154,7 +2154,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
     fig2.add_trace(go.Bar(
         x=table[table.columns[0]].unique(),
         y=y_vals2,
-        marker_color='#88D9FA',
+        marker_color='#39c0f7',
         hovertemplate=' Age Group: %{x} <br> ' + '%{y:.1f}<extra></extra>'
     ))
 
