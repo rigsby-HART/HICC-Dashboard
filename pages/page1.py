@@ -85,7 +85,7 @@ opacity_value = 0.2
 
 # Default location in the map
 
-default_value = 'Surrey CY (CSD, BC)'  #'Canada'  #change this back to Canada when done testing!
+default_value = 'Ottawa CV (CSD, ON)'  #'Canada'  #change this back to Canada when done testing!
 
 # Plot icon colors
 
