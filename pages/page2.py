@@ -1333,8 +1333,8 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
     )
     fig1.update_yaxes(
         tickfont=dict(size=10),
-        tickformat = ".0f",
-        tickprefix="$",  # Adds % sign to each tick
+        tickformat = "$.0f",
+        #tickprefix="$",  # Adds % sign to each tick
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Change in Average Monthly Rent ($)'
