@@ -2098,7 +2098,7 @@ def update_output_6(geo, geo_c, scale, selected_columns):
     table = number_formatting(table, ['2021'], 0)
     #table = percent_formatting(table, ['% change in # of HH in CHN by tenure'], 0)
     #table.drop_duplicates(inplace=True)
-    style_data_conditional = generate_style_data_conditional(table)
+    #style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
 
     table = table[['Header to be deleted', 'Metric', '2021']]
@@ -2121,6 +2121,16 @@ def update_output_6(geo, geo_c, scale, selected_columns):
                                      'textAlign': 'center'
                                  } for c in table_columns[1:]
                              ]
+    style_data_conditional = []
+    for i in range(len(table)):
+        row_style = {
+            'if': {'row_index': i},
+            'backgroundColor': '#b0e6fc',
+            'color': '#000000',
+            'border': '1px solid #002145'
+        }
+
+        style_data_conditional.append(row_style)
     new_data_style = [
             {
                 'if': {'row_index': 1, 'column_id': ' '},
