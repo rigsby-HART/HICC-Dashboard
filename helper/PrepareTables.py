@@ -28,13 +28,13 @@ class PrepareTables:
     def prepare_output_1(self, future=''):
         print("Preparing Output 1")
 
-        output_1_columns = ['DAs_2021Centroids_200mTransitStatistics.CSDUID', f'200m{future}Transit_Access', 
+        output_1_columns = ['CSDUID', f'200m{future}Transit_Access', 
                              f'200m{future}Transit_PerHHAccess', 
                             f'800m{future}Transit_Access', f'800m{future}Transit_PerHHAccess']
         
         try:
             output_1 = self.transit_data[output_1_columns].rename(columns={
-                'DAs_2021Centroids_200mTransitStatistics.CSDUID': 'ALT_GEO_CODE_EN'})
+                'CSDUID': 'ALT_GEO_CODE_EN'})
 
         except KeyError:
             print('Some columns from output 1 were not found')
