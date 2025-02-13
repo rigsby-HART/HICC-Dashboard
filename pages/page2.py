@@ -68,7 +68,7 @@ mapped_geo_code = pd.read_sql_table('geocodes_integrated', engine_old.connect())
 # Configuration for plot icons
 
 config = {'displayModeBar': True, 'displaylogo': False,
-          'modeBarButtonsToRemove': ['zoom', 'lasso2d', 'pan', 'select', 'autoScale', 'resetScale', 'resetViewMapbox']}
+          'modeBarButtonsToRemove': ['zoom', 'lasso2d', 'pan', 'select', 'zoomIn', 'zoomOut', 'autoScale', 'resetScale', 'resetViewMapbox']}
 
 # Colors for map
 colors = ['#D7F3FD', '#88D9FA', '#39C0F7', '#099DD7', '#044762']
@@ -744,9 +744,6 @@ layout = html.Div(children=[
                  html.Footer([
                      html.Img(src='.\\assets\\Footer for HNR Calc.png', className='footer-image')
                  ], className='footer'),
-                 html.Div([
-                    'This dashboard was created in collaboration with ',  html.A('Licker Geospatial', href = 'https://www.lgeo.co/)', target="_blank"),' using Plotly.'
-                 ], className = 'lgeo-credit-text'),
 
              ], className='dashboard-pg2-lgeo'
              ),
