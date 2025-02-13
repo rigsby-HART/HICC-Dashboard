@@ -563,8 +563,8 @@ def update_map(clickData, btn1, value, btn2, btn3, btn4, btn5):
 
     else:
 
-        fig_m = province_map(value, True)
-        # fig_m = region_map(value, True, str(province_code))
+        # fig_m = province_map(value, True)
+        fig_m = subregion_map(value, True, 'N')
 
         return fig_m, default_value
 

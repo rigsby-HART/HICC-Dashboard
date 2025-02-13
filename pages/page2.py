@@ -84,7 +84,7 @@ opacity_value = 0.2
 
 # Default location in the map
 
-default_value = 'Vancouver CY (CSD, BC)'
+default_value = 'Ottawa CV (CSD, ON)'
 
 layout = html.Div(children=[
 
