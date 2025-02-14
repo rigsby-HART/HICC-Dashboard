@@ -2414,12 +2414,7 @@ def update_output_9(geo, geo_c, scale, selected_columns):
 
     if not table.empty:
         table.loc[:, [table.columns[-1]]] = table.loc[:, [table.columns[-1]]].applymap(
-            lambda x: (
-        f"+${x:,.1f}" if isinstance(x, (int, float)) and x > 0 
-        else f"-${abs(x):,.1f}" if isinstance(x, (int, float)) and x < 0 
-        else f"${x:,.1f}" if isinstance(x, (int, float)) 
-        else x
-    )
+            lambda x: f"+{x:,.1f}" if isinstance(x, (int, float)) and x > 0 else (f"{x:,.1f}" if isinstance(x, (int, float)) else x)
         )
 
     style_data_conditional = generate_style_data_conditional(table)
@@ -2538,10 +2533,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         x=table[table.columns[0]].unique(),
         y=y_vals2,
         marker_color='#39c0f7',
-        customdata=[f"+${x:,.1f}" if isinstance(x, (int, float)) and x > 0 
-        else f"-${abs(x):,.1f}" if isinstance(x, (int, float)) and x < 0 
-        else f"${x:,.1f}" if isinstance(x, (int, float)) 
-        else x for x in y_vals2],
+        customdata=[f"+{x:,.1f}" if isinstance(x, (int, float)) and x > 0 else (f"{x:,.1f}" if isinstance(x, (int, float)) else x) for x in y_vals2],
         hovertemplate=' Age Group: %{x} <br> ' + '%{customdata}<extra></extra>'
     ))
 
