@@ -756,9 +756,9 @@ layout = html.Div(children=[
 
                  # LGEO
 
-                 # html.Footer([  #waiting on new image from HART
-                 #     html.Img(src='.\\assets\\Footer for HNR Calc.png', className='footer-image')
-                 # ], className='footer'),
+                 html.Footer([
+                     html.Img(src='.\\assets\\HNA Template Footer.png', className='footer-image')
+                 ], className='footer'),
 
              ], className='dashboard-pg2-lgeo'
              ),
@@ -1043,6 +1043,10 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
     style_header_conditional = generate_style_header_conditional(table)
 
     # Generating callback output to update table
+    print("table 1", table)
+    table = table.replace('Total', 'Total HHs (#)')
+    table['Characteristic'] = table['Characteristic'].replace('Households within 800m of an existing rail/light-rail transit station (#)', 'Households within 800m of an existing rail/light-rail transit station')
+    table['Characteristic'] = table['Characteristic'].replace('Households within 200m of an existing rail/light-rail transit station (#)', 'Households within 200m of an existing rail/light-rail transit station')
 
     table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
 
@@ -1129,6 +1133,13 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
     
 
     # Generating callback output to update table
+    table = table.replace('Total', 'Total HHs (#)')
+    table['Characteristic'] = table['Characteristic'].replace(
+        'Households within 800m of an existing or under construction rail/light-rail transit station (#)',
+        'Households within 800m of an existing or under construction rail/light-rail transit station')
+    table['Characteristic'] = table['Characteristic'].replace(
+        'Households within 200m of an existing or under construction rail/light-rail transit station (#)',
+        'Households within 200m of an existing or under construction rail/light-rail transit station')
 
     table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
 
@@ -1350,8 +1361,7 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
     fig1.update_yaxes(
         tickfont=dict(size=10),
         tickformat = "$.0f",
-        gridcolor='#978F93',
-        #tickprefix="$",  # Adds % sign to each tick
+    #tickprefix="$",  # Adds % sign to each tick
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Change in Average Monthly Rent ($)'
@@ -1391,7 +1401,6 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
         tickfont=dict(size=10),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
-        gridcolor='#978F93',
         # fixedrange = True,
         title='% Change in Average Monthly Rent ($)'
     )
@@ -1520,23 +1529,20 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
 
         #paper_bgcolor= '#A8A8A8',
         title=f'Vacancy Rates (2016-2023) {geo}',
-        legend_title="TBD",
 
-    )
+    ),
     fig1.update_xaxes(
         # fixedrange = True,
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Year',
-        tickfont=dict(size=10)
+        tickfont=dict(size=10),
+
     )
     fig1.update_yaxes(
         tickfont=dict(size=10),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
-        gridcolor = '#978F93',
-        # range = [min(table['']),100]
-        # fixedrange = True,
         title='Vacancy Rates (%)'
     )
 
@@ -1571,7 +1577,7 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
     )
     fig2.update_yaxes(
         tickfont=dict(size=10),
-        gridcolor='#978F93',
+
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Change in vacancy rates (pp)'
@@ -1780,7 +1786,6 @@ def update_geo_figure_4a(geo, geo_c, scale, refresh):
     fig1.update_yaxes(
         tickfont=dict(size=10),
         tickformat = ",.0f",
-        gridcolor='#978F93',
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Housing Starts (#)'
@@ -1869,7 +1874,6 @@ def update_geo_figure_4b(geo, geo_c, scale, refresh):
     fig1.update_yaxes(
         tickfont=dict(size=10),
         tickformat = ",.0f",
-        gridcolor='#978F93',
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Housing Starts (#)'
@@ -2040,7 +2044,6 @@ def update_geo_figure_5a(geo, geo_c, scale, refresh):
     fig1.update_yaxes(
         tickfont=dict(size=10),
         tickformat = ",.0f",
-        gridcolor='#978F93',
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Number of Households in CHN'
@@ -2105,8 +2108,6 @@ def update_geo_figure_5b(geo, geo_c, scale, refresh):
         tickfont=dict(size=10),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
-        gridcolor='#978F93',
-        gridwidth=0.5,
         # range = [min(table['']),100]
         # fixedrange = True,
         title='% of Households in CHN'
@@ -2513,7 +2514,6 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         ticksuffix="%",  # Adds % sign to each tick
         # fixedrange = True,
         title='Headship Rate',
-        gridcolor = '#978F93',
     )
 
     y_vals2 = table[table.columns[7]].tolist()
@@ -2550,7 +2550,6 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         tickfont=dict(size=10),
         # range = [min(table['']),100]
         # fixedrange = True,
-        gridcolor='#978F93',
         title='Percentage point change'
     )
 
