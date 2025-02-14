@@ -756,9 +756,9 @@ layout = html.Div(children=[
 
                  # LGEO
 
-                 # html.Footer([  #waiting on new image from HART
-                 #     html.Img(src='.\\assets\\Footer for HNR Calc.png', className='footer-image')
-                 # ], className='footer'),
+                 html.Footer([
+                     html.Img(src='.\\assets\\HNA Template Footer.png', className='footer-image')
+                 ], className='footer'),
 
              ], className='dashboard-pg2-lgeo'
              ),
