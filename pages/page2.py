@@ -180,7 +180,7 @@ layout = html.Div(children=[
 
                  # 2. HICC Section 3.3, data point 9 and 10. Output 9
                  html.Div([
-                     html.H4(children=html.Strong('Changes in Head of Household rates by age between 2016 and 2021'),
+                     html.H4(children=html.Strong('Changes in Head of Household Rates by Age Between 2016 and 2021'),
                              id='visualization9'),
                      html.H5(children='HICC HNA Template: Section 3.3'),
                      html.H6(
@@ -232,7 +232,7 @@ layout = html.Div(children=[
 
                  # 2. HICC Section 3.3, data point 9 and 10. Table 9
                  html.Div([
-                     html.H4(html.Strong("Estimated Household Suppression by age of Primary Household Maintainers")),
+                     html.H4(html.Strong("Estimated Household Suppression by Age of Primary Household Maintainers")),
                      html.H5("HICC HNA Template: Section 3.3"),
                      # Tables
                      html.H6(children=[
@@ -341,7 +341,7 @@ layout = html.Div(children=[
 
                  # 6. HICC Section 5.4, data point 2. Output 2a
                  html.Div([
-                     html.H4(children=[html.Strong('The Change in Average Rents between 2016 and 2023.')],
+                     html.H4(children=[html.Strong('The Change in Average Rents Between 2016 and 2023.')],
                              id='visualization2a'),
                      html.H5("HICC HNA Template: Section 5.4",
                              # style={'fontFamily': 'Open Sans, sans-serif'}
@@ -580,7 +580,7 @@ layout = html.Div(children=[
 
                  # 9. HICC Section 5.7.1, data point 7. Output 7
                  html.Div([
-                     html.H4(children=html.Strong('Number of rental housing units that are subsidized or not subsidized'),
+                     html.H4(children=html.Strong('Number of Rental Housing Units that are Subsidized or Not Subsidized'),
                              id='visualization7'),
                      html.H5(html.Strong("HICC HNA Template: Section 5.7.1")),
                      html.H6(
@@ -619,7 +619,7 @@ layout = html.Div(children=[
 
                  # 10. HICC Section 5.7.1, data point 8. Output 8
                  html.Div([
-                     html.H4(children=html.Strong('Number of housing units that are below-market rent in the private market'),
+                     html.H4(children=html.Strong('Number of Housing Units that are Below-Market Rent in the Private Market'),
                              id='visualization8'),
                      html.H5(html.Strong("HICC HNA Template: Section 5.7.1")),
                      html.H6('The following table shows the number of private (i.e. unsubsidized) occupied rental housing units with '
@@ -658,7 +658,7 @@ layout = html.Div(children=[
 
                  # HICC Section 5.9.2, data point 4a and 4b tables
                  html.Div([
-                     html.H4(children=html.Strong('Housing starts by structural type and tenure')),
+                     html.H4(children=html.Strong('Housing Starts by Structural Type and Tenure')),
                      html.H5(children=html.Strong('HICC HNA Template: Section 5.9.2')),
                      html.H6(
                          f'The following chart shows the number of housing starts by the structural type of building, for each calendar year 2016 to 2023.',
@@ -2450,7 +2450,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         # width = 900,
         barmode='group',
         plot_bgcolor='#F8F9F9',
-        title=f'Headship rates by A ge (2016 & 2021) {geo}',
+        title=f'Headship rates by Age (2016 & 2021) {geo}',
         legend_title="Headship Rate"
     )
     fig1.update_xaxes(
