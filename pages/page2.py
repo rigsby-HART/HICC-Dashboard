@@ -1043,6 +1043,10 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
     style_header_conditional = generate_style_header_conditional(table)
 
     # Generating callback output to update table
+    print("table 1", table)
+    table = table.replace('Total', 'Total HHs (#)')
+    table['Characteristic'] = table['Characteristic'].replace('Households within 800m of an existing rail/light-rail transit station (#)', 'Households within 800m of an existing rail/light-rail transit station')
+    table['Characteristic'] = table['Characteristic'].replace('Households within 200m of an existing rail/light-rail transit station (#)', 'Households within 200m of an existing rail/light-rail transit station')
 
     table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
 
@@ -1129,6 +1133,13 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
     
 
     # Generating callback output to update table
+    table = table.replace('Total', 'Total HHs (#)')
+    table['Characteristic'] = table['Characteristic'].replace(
+        'Households within 800m of an existing or under construction rail/light-rail transit station (#)',
+        'Households within 800m of an existing or under construction rail/light-rail transit station')
+    table['Characteristic'] = table['Characteristic'].replace(
+        'Households within 200m of an existing or under construction rail/light-rail transit station (#)',
+        'Households within 200m of an existing or under construction rail/light-rail transit station')
 
     table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
 
@@ -1351,7 +1362,8 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
         tickfont=dict(size=10),
         tickformat = "$.0f",
         gridcolor='#978F93',
-        #tickprefix="$",  # Adds % sign to each tick
+        gridwidth=0.5,
+    #tickprefix="$",  # Adds % sign to each tick
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Change in Average Monthly Rent ($)'
@@ -1392,6 +1404,7 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
         gridcolor='#978F93',
+        gridwidth=0.5,
         # fixedrange = True,
         title='% Change in Average Monthly Rent ($)'
     )
@@ -1520,23 +1533,20 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
 
         #paper_bgcolor= '#A8A8A8',
         title=f'Vacancy Rates (2016-2023) {geo}',
-        legend_title="TBD",
 
-    )
+    ),
     fig1.update_xaxes(
         # fixedrange = True,
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Year',
-        tickfont=dict(size=10)
+        tickfont=dict(size=10),
+
     )
     fig1.update_yaxes(
         tickfont=dict(size=10),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
-        gridcolor = '#978F93',
-        # range = [min(table['']),100]
-        # fixedrange = True,
         title='Vacancy Rates (%)'
     )
 
