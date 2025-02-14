@@ -1361,8 +1361,6 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
     fig1.update_yaxes(
         tickfont=dict(size=10),
         tickformat = "$.0f",
-        gridcolor='#978F93',
-        gridwidth=0.5,
     #tickprefix="$",  # Adds % sign to each tick
         # range = [min(table['']),100]
         # fixedrange = True,
@@ -1403,8 +1401,6 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
         tickfont=dict(size=10),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
-        gridcolor='#978F93',
-        gridwidth=0.5,
         # fixedrange = True,
         title='% Change in Average Monthly Rent ($)'
     )
@@ -1581,7 +1577,7 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
     )
     fig2.update_yaxes(
         tickfont=dict(size=10),
-        gridcolor='#978F93',
+
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Change in vacancy rates (pp)'
@@ -1790,7 +1786,6 @@ def update_geo_figure_4a(geo, geo_c, scale, refresh):
     fig1.update_yaxes(
         tickfont=dict(size=10),
         tickformat = ",.0f",
-        gridcolor='#978F93',
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Housing Starts (#)'
@@ -1879,7 +1874,6 @@ def update_geo_figure_4b(geo, geo_c, scale, refresh):
     fig1.update_yaxes(
         tickfont=dict(size=10),
         tickformat = ",.0f",
-        gridcolor='#978F93',
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Housing Starts (#)'
@@ -2050,7 +2044,6 @@ def update_geo_figure_5a(geo, geo_c, scale, refresh):
     fig1.update_yaxes(
         tickfont=dict(size=10),
         tickformat = ",.0f",
-        gridcolor='#978F93',
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Number of Households in CHN'
@@ -2115,8 +2108,6 @@ def update_geo_figure_5b(geo, geo_c, scale, refresh):
         tickfont=dict(size=10),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
-        gridcolor='#978F93',
-        gridwidth=0.5,
         # range = [min(table['']),100]
         # fixedrange = True,
         title='% of Households in CHN'
@@ -2523,7 +2514,6 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         ticksuffix="%",  # Adds % sign to each tick
         # fixedrange = True,
         title='Headship Rate',
-        gridcolor = '#978F93',
     )
 
     y_vals2 = table[table.columns[7]].tolist()
@@ -2560,7 +2550,6 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         tickfont=dict(size=10),
         # range = [min(table['']),100]
         # fixedrange = True,
-        gridcolor='#978F93',
         title='Percentage point change'
     )
 
