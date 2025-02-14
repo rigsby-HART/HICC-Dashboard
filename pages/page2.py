@@ -511,6 +511,7 @@ layout = html.Div(children=[
                                    config=config,
 
                                    ),
+                                   html.Div(id='graph_5a-container'),
                          html.H6(
                              f'The following chart shows the rate of CHN among owner-occupied and tenant-occupied households in 2016 and 2021. ',
                              #style={'fontFamily': 'Open Sans, sans-serif'}
@@ -520,7 +521,7 @@ layout = html.Div(children=[
                                    config=config,
 
                                    ),
-                         html.Div(id='graph_5-container')  # is this necessary?
+                         html.Div(id='graph_5b-container')  # is this necessary?
                      ]),
 
                  ], className='pg2-bar5-lgeo'
@@ -1020,7 +1021,7 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
     table = percent_formatting(table, ['Value'], mult_flag=1, conditions=percent_conditions)
 
     number_conditions = {'Data': lambda x: x == 'Total'}
-    table = number_formatting(table, ['Value'], 0, conditions=number_conditions)
+    table = number_formatting(table, ['Value'], 0, conditions=number_conditions).fillna(0)
 
     table = table[['Characteristic', 'Data', 'Value']].sort_values(
         by=['Characteristic', 'Data'], ascending=False).replace('a ', 'an existing ', regex=True)
@@ -1104,7 +1105,7 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
     table = percent_formatting(table, ['Value'], mult_flag=1, conditions=percent_conditions)
 
     number_conditions = {'Data': lambda x: x == 'Total'}
-    table = number_formatting(table, ['Value'], 0, conditions=number_conditions)
+    table = number_formatting(table, ['Value'], 0, conditions=number_conditions).fillna(0)
 
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
@@ -1191,7 +1192,8 @@ def update_output_2a(geo, geo_c, scale, selected_columns):
 
     if not table.empty:
         table.loc[table['Metric'] == 'Avg Monthly Rent', table.columns[1:]] = \
-        table.loc[table['Metric'] == 'Avg Monthly Rent', table.columns[1:]].applymap(lambda x: f"${x:,.0f}")
+        table.loc[table['Metric'] == 'Avg Monthly Rent', table.columns[1:]].applymap(
+            lambda x: f"${x:,.0f}" if isinstance(x, (int, float)) else x)
 
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
@@ -1243,13 +1245,17 @@ def update_output_2b(geo, geo_c, scale, selected_columns):
     if not table.empty:
         table.loc[table['Metric'] == 'Change in Avg Rent', table.columns[1:]] = \
         table.loc[table['Metric'] == 'Change in Avg Rent', table.columns[1:]].applymap(
-        lambda x: f"+${x:,.0f}" if x > 0 else (f"-${abs(x):,.0f}" if x < 0 else f"${x:,.0f}")
+        lambda x: f"+${x:,.1f}" if isinstance(x, (int, float)) and x > 0 
+        else f"-${abs(x):,.1f}" if isinstance(x, (int, float)) and x < 0 
+        else f"${x:,.1f}" if isinstance(x, (int, float)) 
+        else x
         )
         table.loc[table['Metric'] == '% Change in Avg Rent', table.columns[1:]] = \
             table.loc[table['Metric'] == '% Change in Avg Rent', table.columns[1:]].applymap(
-            lambda x: f"+{x}" if float(x[:-1]) > 0 else f"{x}"
+            lambda x: f"+{x}" if isinstance(x, str) and x.endswith('%') and x[:-1].replace('.', '', 1).isdigit() and float(x[:-1]) > 0 
+        else x
         )
-    print(table.dtypes, table)
+    
 
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
@@ -1302,7 +1308,10 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
         x=table.columns[1:],
         y=y_vals1,
         marker_color='#39c0f7',
-        customdata=[f"+${x:,.0f}" if x > 0 else (f"-${abs(x):,.0f}" if x < 0 else f"${x:,.0f}") for x in y_vals1],
+        customdata=[f"+${x:,.1f}" if isinstance(x, (int, float)) and x > 0 
+        else f"-${abs(x):,.1f}" if isinstance(x, (int, float)) and x < 0 
+        else f"${x:,.1f}" if isinstance(x, (int, float)) 
+        else x for x in y_vals1],
         hovertemplate=' Year: %{x} <br> ' + '%{customdata}<extra></extra>'
     ))
 
@@ -1432,7 +1441,7 @@ def update_output_3b(geo, geo_c, scale, selected_columns):
 
     if not table.empty:
         table.loc[:, table.columns[1:]] = table.loc[:, table.columns[1:]].applymap(
-            lambda x: f"+{x:,.1f}" if x > 0 else f"{x:,.1f}"
+            lambda x: f"+{x:,.1f}" if isinstance(x, (int, float)) and x > 0 else (f"{x:,.1f}" if isinstance(x, (int, float)) else x)
         )
 
     style_data_conditional = generate_style_data_conditional(table)
@@ -1517,7 +1526,8 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
         x=table_ChangeInVacancyRate.columns[1:],
         y=y_vals2,
         marker_color='#3eb549',
-        customdata = [f"+{x:,.1f}" if x > 0 else f"{x:,.1f}" for x in y_vals2],
+        customdata = [f"+{x:,.1f}" if isinstance(x, (int, float)) and x > 0 else \
+                      (f"{x:,.1f}" if isinstance(x, (int, float)) else x) for x in y_vals2],
         hovertemplate=' Year: %{x} <br> ' + '%{customdata}<extra></extra>' 
     ))
 
@@ -1865,8 +1875,15 @@ def update_output_5a(geo, geo_c, scale, selected_columns):
 
     if not table.empty:
         table.loc[:, ['2021 - 2016']] = table.loc[:, ['2021 - 2016']].applymap(
-            lambda x: f"+{x:,.0f}" if x > 0 else (f"-{abs(x):,.0f}" if x < 0 else f"{x:,.0f}")
+            lambda x: (
+            x if isinstance(x, str) and x.lower() == "n/a"  # Keep "n/a" as it is
+            else f"+{x:,.0f}" if isinstance(x, (int, float)) and x > 0 
+            else f"-{abs(x):,.0f}" if isinstance(x, (int, float)) and x < 0 
+            else f"{x:,.0f}" if isinstance(x, (int, float)) 
+            else x  # Fallback for other unexpected values
         )
+        )
+        #lambda x: f"+{x:,.0f}" if x > 0 else (f"-{abs(x):,.0f}" if x < 0 else f"{x:,.0f}"
     table.drop_duplicates(inplace=True)
 
     style_data_conditional = generate_style_data_conditional(table)
@@ -2021,8 +2038,8 @@ def update_geo_figure_5b(geo, geo_c, scale, refresh):
     table = table_generator(geo, output_5b, 'output_5b')
     # Generating plot
     fig1 = go.Figure()
-    y_vals1 = [y * 100 for y in table['2016'].values.flatten().tolist()]
-    y_vals2 = [y * 100 for y in table['2021'].values.flatten().tolist()]
+    y_vals1 = [y * 100 for y in table['2016'].values.flatten().tolist() if y != "n/a"]
+    y_vals2 = [y * 100 for y in table['2021'].values.flatten().tolist() if y != "n/a"]
     
 
     fig1.add_trace(go.Bar(
@@ -2348,7 +2365,12 @@ def update_output_9(geo, geo_c, scale, selected_columns):
 
     if not table.empty:
         table.loc[:, [table.columns[-1]]] = table.loc[:, [table.columns[-1]]].applymap(
-            lambda x: f"+{x:,.1f}" if x > 0 else (f"-{abs(x):,.1f}" if x < 0 else f"{x:,.1f}")
+            lambda x: (
+        f"+${x:,.1f}" if isinstance(x, (int, float)) and x > 0 
+        else f"-${abs(x):,.1f}" if isinstance(x, (int, float)) and x < 0 
+        else f"${x:,.1f}" if isinstance(x, (int, float)) 
+        else x
+    )
         )
 
     style_data_conditional = generate_style_data_conditional(table)
@@ -2409,8 +2431,16 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
     table.drop_duplicates(inplace=True)
 
     fig1 = go.Figure()
-    y_vals1_1 = [y * 100 for y in table[table.columns[3]].tolist()]
-    y_vals1_2 = [y * 100 for y in table[table.columns[6]].tolist()]
+    # if all(y == "n/a" for y in table[table.columns[3]].tolist()):
+    #     y_vals1_1 = []
+    # else:
+    y_vals1_1 = [y * 100 for y in table[table.columns[3]].tolist() if y != "n/a"]
+
+
+    # if all(y == "n/a" for y in table[table.columns[3]].tolist()):
+    #     y_vals1_2 = []
+    # else:
+    y_vals1_2 = [y * 100 for y in table[table.columns[6]].tolist() if y != "n/a"]
 
     fig1.add_trace(go.Bar(
         x=table[table.columns[0]].unique(),
@@ -2458,7 +2488,10 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         x=table[table.columns[0]].unique(),
         y=y_vals2,
         marker_color='#39c0f7',
-        customdata=[f"+{y:.1f}" if y > 0 else f"{y:.1f}" for y in y_vals2],
+        customdata=[f"+${x:,.1f}" if isinstance(x, (int, float)) and x > 0 
+        else f"-${abs(x):,.1f}" if isinstance(x, (int, float)) and x < 0 
+        else f"${x:,.1f}" if isinstance(x, (int, float)) 
+        else x for x in y_vals2],
         hovertemplate=' Age Group: %{x} <br> ' + '%{customdata}<extra></extra>'
     ))
 
@@ -2599,6 +2632,8 @@ def update_output_10b(geo, geo_c, scale, selected_columns):
     table.columns = pd.MultiIndex.from_tuples(
         [(col[0] + " (table 2 of 2)", col[1]) for col in table.columns]
     )
+    if all(val == "n/a" for val in table[table.columns[:-1]][:-1]):  # Ignore last row (total row)
+        table.loc[table["Age Group"] == "Total Suppressed Households", table.columns[:-1]] = "n/a"
 
     # Generating callback output to update table
 
