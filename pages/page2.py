@@ -294,6 +294,40 @@ layout = html.Div(children=[
                  ),
 
                  # 3. HICC Section 4.1, data point 11. TO BE Received in round 2
+                     html.Div([
+                     html.H4(children=html.Strong(f'Priority groups by core housing need status: Youth 18-29, Same-gender couples, Transgender or non-binary couples, People dealing with mental health and addictions issues, and Veterans')),
+                     html.H5(children=html.Strong('HICC HNA Template: Section 4.1'),
+                             id='visualization6'),
+                     html.H6(
+                         f'The following chart shows the percentage of households in CHN for each population group.',
+                     ),
+                     dcc.Graph(id='graph_11', #TODO callback
+                              figure=fig1,
+                              config=config,
+                     ),
+                     html.H6('The following table shows the number of households in core housing need (CHN) for certain population groups, along with the percentage of households'
+                             ' in CHN  for each group. Rate of CHN is calculated as the number of households in CHN divided by the number of households examined for CHN.'),
+                     #TODO probably need to add note:   The census does not evaluate all households for Core Housing Need – see more here: https://www23.statcan.gc.ca/imdb/p3Var.pl?Function=DEC&Id=1230313
+
+                     dbc.Button("Export", id="export-table-17", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_11', #TODO callback
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+
+                                       }
+                     ), html.Div(id='output_11-container'),
+                     html.Br()
+                 ], className='pg2-output11-lgeo'
+                 ),
 
 
                  # Data point 6 primary and secondary rental units HICC HNA Template: Section 5.2.1
@@ -333,6 +367,32 @@ layout = html.Div(children=[
 
 
                  # output 13 TO BE RECEIVED TODO in round 2
+                 html.Div([
+                     html.H4(children=html.Strong(f'The number of affordable units for low and very low-income households built, and the number lost ')),
+                     html.H5(children=html.Strong('HICC HNA Template: Section 5.3'),
+                             id='visualization6'),
+                     html.H6('The following table estimates the number of dwellings affordable to low and very-low income households built and lost between 2016 and 2021. We define low and very-low income households as those households whose income is equal to or less than 50% of the area median household income in a given year. For this calculation, “area” refers to the census subdivision.'),
+
+                     dbc.Button("Export", id="export-table-18", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_13', #TODO callback
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+
+                                       }
+                     ), html.Div(id='output_13-container'),
+                     html.Br()
+                 ], className='pg2-output13-lgeo'
+                 ),
+
 
                  # 6. HICC Section 5.4, data point 2. Output 2a
                  html.Div([
@@ -665,15 +725,36 @@ layout = html.Div(children=[
                  ),
 
                  #11. HICC Section 5.7.1, data point 12. TODO in round 2
+                 html.Div([
+                     html.H4(children=html.Strong('Number of co-operative housing units')),
+                     html.H5(children=html.Strong('HICC HNA Template: Section 5.7.1')),
+                     html.H6(
+                         f'The following table shows the number of co-operative housing units who were registered with the Co-operative Housing Federation of Canada (CHF Canada) with an address within the census boundaries of the selected census subdivision. '),
+                     # TABLE for output 12
+                     dbc.Button("Export", id="export-table-19", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_12',  #TODO callback
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+
+                                       }
+                     ), html.Br(),
+                 ], className='pg2-output12-lgeo'),
 
                  # HICC Section 5.9.2, data point 4a and 4b tables
                  html.Div([
                      html.H4(children=html.Strong('Housing Starts by Structural Type and Tenure')),
                      html.H5(children=html.Strong('HICC HNA Template: Section 5.9.2')),
                      html.H6(
-                         f'The following chart shows the number of housing starts by the structural type of building, for each calendar year 2016 to 2023.',
-                         #style={'fontFamily': 'Open Sans, sans-serif'}
-                     ),
+                         f'The following chart shows the number of housing starts by the structural type of building, for each calendar year 2016 to 2023.'),
                  # 4a graph stacked bar
                  html.Div([
 
