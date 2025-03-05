@@ -590,7 +590,33 @@ class PrepareTables:
 
         return output_9, output_10a, output_10b_with_summary
 
+    def prepare_output_11(self):
+        #todo waiting on more data
+        pass
 
+    def prepare_output_12(self):
+        # number of co-ops who registered with the co-op housing federation
+        #col 2024_Coops
+        print("Preparing Output 12...")
+        output_12_columns = required_cols + ['2024_Coops']
+
+        assert len(output_12_columns) != len(required_cols), "The required columns are not fetched"
+        try:
+            output_12 = self.master_data[output_12_columns]
+            #output_12 = output_12[output_12['Geography'].isin(test_geo)]
+        except KeyError:
+            print('Some columns from output 12 were not found')
+        output_12 = self.master_data[output_12_columns]
+        # export to csv
+        output_12.to_csv(os.path.join(throughputs_path, "Output12.csv"))
+        print("Output 12 Successfully created...")
+
+        return output_12
+
+
+    def prepare_output_13(self):
+        # affordable units and # lost
+        pass
 
     @staticmethod
     def clean_input_data(input_data):
