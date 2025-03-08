@@ -591,12 +591,46 @@ class PrepareTables:
         return output_9, output_10a, output_10b_with_summary
 
     def prepare_output_11(self):
-        #todo waiting on more data
-        pass
+        #priority groups by core housing need
+
+        #todo waiting on more data- filled with -1 for now
+        print("Preparing Output 11...")
+        CHN_cols = [col for col in self.master_data.columns if 'ExaminedForCHN' in col] + [col
+                                            for col in self.master_data.columns if '2021_CHN' in col]
+        # do we want CHN_Renter_2021 or ExaminedForCHNRenter as the divisor?
+        CHN_renter_owner_cols = [col for col in self.master_data.columns if 'Renter' in col or 'Owner' in col]
+        clean_CHN_cols = list(set(CHN_cols) - set(CHN_renter_owner_cols)) #['2021_CHN_Youth', '2021_CHN_TransgenderNonBinary', '2021_CHN_Veteran', '2021_ExaminedForCHN_MentalHealth', '2021_ExaminedForCHN_Veteran', '2021_ExaminedForCHN_SameGender', '2021_CHN_MentalHealth', '2021_CHN_SameGender', '2021_ExaminedForCHN_Youth', '2021_ExaminedForCHN_TransgenderNonBinary']  # #
+
+        output_11_columns = required_cols + clean_CHN_cols
+
+        assert len(output_11_columns) != len(required_cols), "The required columns are not fetched"
+        try:
+            output_11 = self.master_data[output_11_columns]
+            # output_11 = output_11[output_11['Geography'].isin(test_geo)]
+        except KeyError:
+            print('Some columns from output 11 were not found')
+        output_11 = self.master_data[output_11_columns]
+
+        output_11.iloc[:,3:] = output_11.iloc[:,3:].apply(pd.to_numeric,  errors='coerce')
+        priority_groups = ['Youth', 'SameGender', 'TransgenderNonBinary', 'MentalHealth', 'Veteran']
+        for group in priority_groups:
+            subset = output_11[[col for col in output_11.columns if group in col]]
+            # Calculate Rate of Core Housing Need (CHN) for each of the five following priority groups as the Number of Households
+            # in CHN divided by the Number of Households Examined for CHN  ie. 2021_CHN_Youth / '2021_ExaminedForCHN_Youth'
+            output_11[f'{group}_Rate of CHN'] = subset[f'2021_CHN_{group}'].div(subset[f'2021_ExaminedForCHN_{group}'])
+            #REMOVE WHEN WE GET THE REAL DATA TODO
+            if group == 'SameGender' or group == 'TransgenderNonBinary':
+                output_11[subset.columns] = subset.replace(-1, np.nan).replace(1, np.nan)
+
+
+        # export to csv
+        output_11.to_csv(os.path.join(throughputs_path, "Output11.csv"))
+        print("Output 11 Successfully created...")
+
+        return output_11
 
     def prepare_output_12(self):
         # number of co-ops who registered with the co-op housing federation
-        #col 2024_Coops
         print("Preparing Output 12...")
         output_12_columns = required_cols + ['2024_Coops']
 
@@ -616,7 +650,22 @@ class PrepareTables:
 
     def prepare_output_13(self):
         # affordable units and # lost
-        pass
+        print("Preparing Output 13...")
+        output_13_columns = required_cols + ["2016to2021_AffordableUnits_Built", "2016to2021_AffordableUnits_Lost"]
+
+        assert len(output_13_columns) != len(required_cols), "The required columns are not fetched"
+        try:
+            output_13 = self.master_data[output_13_columns]
+            # output_13 = output_13[output_13['Geography'].isin(test_geo)]
+        except KeyError:
+            print('Some columns from output 13 were not found')
+        output_13 = self.master_data[output_13_columns]
+        output_13['Net Change in Affordable Units'] = output_13["2016to2021_AffordableUnits_Built"] - output_13['2016to2021_AffordableUnits_Lost']
+        # export to csv
+        output_13.to_csv(os.path.join(throughputs_path, "Output13.csv"))
+        print("Output 13 Successfully created...")
+
+        return output_13
 
     @staticmethod
     def clean_input_data(input_data):
