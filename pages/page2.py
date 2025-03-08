@@ -32,6 +32,11 @@ output_8 = pd.read_sql_table('output_8', engine_new.connect())
 output_9 = pd.read_sql_table('output_9', engine_new.connect())
 output_10a = pd.read_sql_table('output_10a', engine_new.connect())
 output_10b = pd.read_sql_table('output_10b', engine_new.connect())
+output_11 = pd.read_sql_table('output_11', engine_new.connect())
+output_12 = pd.read_sql_table('output_12', engine_new.connect())
+output_13 = pd.read_sql_table('output_13', engine_new.connect())
+
+
 
 # Setting a default plot and table which renders before the dashboard is fully loaded
 
@@ -1038,17 +1043,34 @@ def table_generator(geo, df, table_id):
             new_header = ['Housing starts by tenure (2016-2023)'] * (len(filtered_df.columns))
 
         filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
+        print("output_4a HEADER", filtered_df.columns[0])
 
     elif table_id == 'output_8':
         filtered_df = filtered_df.melt(id_vars=filtered_df.columns[:5], var_name="Metric", value_name="2021")
 
+    elif table_id == 'output_11':
+        # melt into format where marginal group is in the rows and colums = 'Number of Households in CHN' 'Rate of CHN'
+        melted_rates = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars= ["Veteran_Rate of CHN", "Youth_Rate of CHN", "SameGender_Rate of CHN", "TransgenderNonBinary_Rate of CHN", "MentalHealth_Rate of CHN"], var_name= 'Priority Populations', value_name="Rate of CHN" )
+
+        melted_hh_in_CHN = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars=['2021_CHN_Veteran', '2021_CHN_Youth' , '2021_CHN_SameGender', '2021_CHN_TransgenderNonBinary', '2021_CHN_MentalHealth'], var_name='Priority Populations', value_name="Number of Households in CHN" )
+        melted_hh_in_CHN = melted_hh_in_CHN['Number of Households in CHN'] #make sure same order of priority populations
+        #print("melted Rate of CHN", melted_hh_in_CHN)
+        filtered_df = pd.concat([melted_rates, melted_hh_in_CHN ], axis=1)
+        print("concat df", filtered_df.columns)
+        print(filtered_df)
+        new_header = ['Households in Core Housing Need (CHN) by priority population, 2021'] * (len(filtered_df.columns))
+        #filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
+        #print("NEW HEADER", filtered_df.columns[0])
+
     else:
+
         filtered_df = filtered_df
 
     if (table_id == 'output_1a') or (table_id == 'output_1b'):
         table = filtered_df.iloc[:, 2:]
     else:
         table = filtered_df.iloc[:, 5:]
+
 
     for index, row in table.iterrows():
         if any('Total' in str(cell) or 'Average' in str(cell) for cell in row.values):
@@ -1124,7 +1146,7 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
     style_header_conditional = generate_style_header_conditional(table)
 
     # Generating callback output to update table
-    print("table 1", table)
+    #print("table 1", table)
     table = table.replace('Total', 'Total HHs (#)')
     table['Characteristic'] = table['Characteristic'].replace('Households within 800m of an existing rail/light-rail transit station (#)', 'Households within 800m of an existing rail/light-rail transit station')
     table['Characteristic'] = table['Characteristic'].replace('Households within 200m of an existing rail/light-rail transit station (#)', 'Households within 200m of an existing rail/light-rail transit station')
@@ -2777,3 +2799,66 @@ def update_output_10b(geo, geo_c, scale, selected_columns):
     style_data_conditional.extend(new_data_style)
     return table_columns, table_data, style_data_conditional, style_cell_conditional, style_header_conditional
 
+# output_11
+@callback(
+    Output('output_11', 'columns'),
+    Output('output_11', 'data'),
+    Output('output_11', 'style_data_conditional'),
+    Output('output_11', 'style_cell_conditional'),
+    Output('output_11', 'style_header_conditional'),
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('output_11', 'selected_columns'),
+)
+def update_output_11(geo, geo_c, scale, selected_columns):
+    geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
+
+    # Generating table
+    print("TABLE 11", output_11.columns)
+    table = table_generator(geo, output_11, 'output_11')
+    #multiply by 100 and % formatting
+    table.drop_duplicates(inplace=True)
+
+    #table = number_formatting(table, table.columns[1:], 0)
+
+    style_data_conditional = generate_style_data_conditional(table)
+    style_header_conditional = generate_style_header_conditional(table)
+    # table = table.rename(columns={'Metric': ''}).replace(
+    #     'Private rental market housing units',
+    #     'Number of private (i.e. unsubsidized) rental market housing units').replace(
+    #     'Subsidized rental housing units', 'Number of rental housing units that are subsidized')
+
+    # Generating callback output to update table
+
+    table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
+
+    style_cell_conditional = [
+                                 {
+                                     'if': {'column_id': table_columns[0]['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'left',
+                                     "maxWidth": "50px"
+                                 }
+                             ] + [
+                                 {
+                                     'if': {'column_id': c['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'center'
+                                 } for c in table_columns[1:]
+                             ]
+
+    new_data_style = [
+        {
+            'if': {'row_index': len(table) - 1, 'column_id': j['id']},
+            'backgroundColor': '#39C0F7',
+            'color': '#000000',
+            'fontWeight': 'bold'
+
+        } for j in table_columns
+
+    ]
+    style_data_conditional.extend(new_data_style)
+
+    return table_columns, table.to_dict(
+        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
