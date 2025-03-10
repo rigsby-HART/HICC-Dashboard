@@ -612,7 +612,7 @@ class PrepareTables:
         output_11 = self.master_data[output_11_columns]
 
         output_11.iloc[:,3:] = output_11.iloc[:,3:].apply(pd.to_numeric,  errors='coerce')
-        priority_groups = ['Youth', 'SameGender', 'TransgenderNonBinary', 'MentalHealth', 'Veteran']
+        priority_groups = ['Youth', 'SameGender', 'TransgenderNonBinary', 'MentalHealth', 'Veteran', 'All']
         for group in priority_groups:
             subset = output_11[[col for col in output_11.columns if group in col]]
             # Calculate Rate of Core Housing Need (CHN) for each of the five following priority groups as the Number of Households

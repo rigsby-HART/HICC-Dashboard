@@ -1050,9 +1050,9 @@ def table_generator(geo, df, table_id):
 
     elif table_id == 'output_11':
         # melt into format where marginal group is in the rows and colums = 'Number of Households in CHN' 'Rate of CHN'
-        melted_rates = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars= ["Veteran_Rate of CHN", "Youth_Rate of CHN", "SameGender_Rate of CHN", "TransgenderNonBinary_Rate of CHN", "MentalHealth_Rate of CHN"], var_name= 'Priority Populations', value_name="Rate of CHN" )
+        melted_rates = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars= ["Veteran_Rate of CHN", "Youth_Rate of CHN", "SameGender_Rate of CHN", "TransgenderNonBinary_Rate of CHN", "MentalHealth_Rate of CHN", "All_Rate of CHN"], var_name= 'Priority Populations', value_name="Rate of CHN" )
         melted_rates_col = melted_rates['Rate of CHN']
-        melted_hh_in_CHN = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars=['2021_CHN_Veteran', '2021_CHN_Youth' , '2021_CHN_SameGender', '2021_CHN_TransgenderNonBinary', '2021_CHN_MentalHealth'], var_name='Priority Populations', value_name="Number of Households in CHN" )
+        melted_hh_in_CHN = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars=['2021_CHN_Veteran', '2021_CHN_Youth' , '2021_CHN_SameGender', '2021_CHN_TransgenderNonBinary', '2021_CHN_MentalHealth', '2021_CHN_All'], var_name='Priority Populations', value_name="Number of Households in CHN" )
         filtered_df = pd.concat([melted_hh_in_CHN, melted_rates_col ], axis=1)
         priority_pops = [x.split("_")[2] for x in filtered_df['Priority Populations'].values]
         filtered_df['Priority Populations'] = priority_pops
@@ -2827,7 +2827,7 @@ def update_output_11(geo, geo_c, scale, selected_columns):
                           "SameGender", "HH with Same-gender couple").replace(
                           "TransgenderNonBinary", "HH with Transgender or non-binary couple").replace(
                           "MentalHealth",  "HH with Person(s) dealing with mental health and addictions issues").replace(
-                          "Veteran", "HH with Veteran(s)")
+                          "Veteran", "HH with Veteran(s)").replace("All", "All HHs")
 
 
     table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
@@ -2877,26 +2877,37 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
     # Generating table
     table = table_generator(geo, output_11, 'output_11')
     table.drop_duplicates(inplace=True)
-    #does Percentage of Households in CHN equal Rate of CHN or do we need a new calculation here?? TODO Q
     # TODO remove when we get the real data
     table.loc[table['Priority Populations'].isin(['SameGender', 'TransgenderNonBinary']), 'Rate of CHN'] = 'n/a'
     table = table.replace("Youth", "Youth-led HH").replace(
                           "SameGender", "Same-gender HH").replace(
                           "TransgenderNonBinary", "Transgender or Non-binary HH").replace(
                           "MentalHealth",  "HH with cognitive, mental or addictions activity limitations").replace(
-                          "Veteran", "Veteran HH")
+                          "Veteran", "Veteran HH").replace("All", "Community (all HHs)")
+    print("MAKING graph for table 11 with" , table)
     # Generating plot
     fig = go.Figure()
-    for i, c in zip(table['Priority Populations'], colors):
+    for i in table['Priority Populations'][:-1]:
         plot_df_frag = table.loc[table['Priority Populations'] == i, :]
         fig.add_trace(go.Bar(
             y=plot_df_frag['Priority Populations'],
             x=plot_df_frag['Rate of CHN'],
             name=i,
-            marker_color=c,
+            marker_color="#39C0F7",
             orientation='h',
             hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
         ))
+    #add diff color bar for all community
+    plot_df_frag = table.loc[table['Priority Populations'] == 'Community (all HHs)', :]
+    fig.add_trace(go.Bar(
+        y=plot_df_frag['Priority Populations'],
+        x=plot_df_frag['Rate of CHN'],
+        name='Community (all HHs)',
+        marker_color="#3EB549",
+        orientation='h',
+        hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
+    ))
+
 
     # Plot layout settings
     fig.update_layout(
