@@ -1043,7 +1043,7 @@ def table_generator(geo, df, table_id):
             new_header = ['Housing starts by tenure (2016-2023)'] * (len(filtered_df.columns))
 
         filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
-        print("output_4a HEADER", filtered_df.columns[0])
+        #print("output_4a HEADER", filtered_df.columns[0])
 
     elif table_id == 'output_8':
         filtered_df = filtered_df.melt(id_vars=filtered_df.columns[:5], var_name="Metric", value_name="2021")
@@ -1051,16 +1051,14 @@ def table_generator(geo, df, table_id):
     elif table_id == 'output_11':
         # melt into format where marginal group is in the rows and colums = 'Number of Households in CHN' 'Rate of CHN'
         melted_rates = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars= ["Veteran_Rate of CHN", "Youth_Rate of CHN", "SameGender_Rate of CHN", "TransgenderNonBinary_Rate of CHN", "MentalHealth_Rate of CHN"], var_name= 'Priority Populations', value_name="Rate of CHN" )
-
+        melted_rates_col = melted_rates['Rate of CHN']
         melted_hh_in_CHN = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars=['2021_CHN_Veteran', '2021_CHN_Youth' , '2021_CHN_SameGender', '2021_CHN_TransgenderNonBinary', '2021_CHN_MentalHealth'], var_name='Priority Populations', value_name="Number of Households in CHN" )
-        melted_hh_in_CHN = melted_hh_in_CHN['Number of Households in CHN'] #make sure same order of priority populations
-        #print("melted Rate of CHN", melted_hh_in_CHN)
-        filtered_df = pd.concat([melted_rates, melted_hh_in_CHN ], axis=1)
-        print("concat df", filtered_df.columns)
-        print(filtered_df)
+        filtered_df = pd.concat([melted_hh_in_CHN, melted_rates_col ], axis=1)
+        priority_pops = [x.split("_")[2] for x in filtered_df['Priority Populations'].values]
+        filtered_df['Priority Populations'] = priority_pops
         new_header = ['Households in Core Housing Need (CHN) by priority population, 2021'] * (len(filtered_df.columns))
-        #filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
-        #print("NEW HEADER", filtered_df.columns[0])
+        # filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
+        # print("NEW HEADER 11", filtered_df.columns[0])
 
     else:
 
@@ -2815,21 +2813,22 @@ def update_output_11(geo, geo_c, scale, selected_columns):
     geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
 
     # Generating table
-    print("TABLE 11", output_11.columns)
     table = table_generator(geo, output_11, 'output_11')
-    #multiply by 100 and % formatting
+    #multiply by 100 and % formatting needed
     table.drop_duplicates(inplace=True)
-
-    #table = number_formatting(table, table.columns[1:], 0)
+    table = number_formatting(table, ['Number of Households in CHN'], 0)
+    table = percent_formatting(table, ['Rate of CHN'], mult_flag=1, conditions={})
+    # TODO remove when we get the real data
+    table.loc[table['Priority Populations'].isin(['SameGender', 'TransgenderNonBinary']), 'Rate of CHN' ] = 'n/a'
 
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
-    # table = table.rename(columns={'Metric': ''}).replace(
-    #     'Private rental market housing units',
-    #     'Number of private (i.e. unsubsidized) rental market housing units').replace(
-    #     'Subsidized rental housing units', 'Number of rental housing units that are subsidized')
+    table = table.replace("Youth", "HH head age 18-29 (Youth-led)").replace(
+                          "SameGender", "HH with Same-gender couple").replace(
+                          "TransgenderNonBinary", "HH with Transgender or non-binary couple").replace(
+                          "MentalHealth",  "HH with Person(s) dealing with mental health and addictions issues").replace(
+                          "Veteran", "HH with Veteran(s)")
 
-    # Generating callback output to update table
 
     table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
 
@@ -2859,6 +2858,176 @@ def update_output_11(geo, geo_c, scale, selected_columns):
 
     ]
     style_data_conditional.extend(new_data_style)
+
+    return table_columns, table.to_dict(
+        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+
+# graph 11
+@callback(
+    Output('graph_11', 'figure'),
+
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('output_11', 'selected_columns'),
+)
+def update_geo_figure_11(geo, geo_c, scale, refresh):
+    geo = get_filtered_geo(geo, geo_c, scale, refresh)
+
+    # Generating table
+    table = table_generator(geo, output_11, 'output_11')
+    table.drop_duplicates(inplace=True)
+    #does Percentage of Households in CHN equal Rate of CHN or do we need a new calculation here?? TODO Q
+    # TODO remove when we get the real data
+    table.loc[table['Priority Populations'].isin(['SameGender', 'TransgenderNonBinary']), 'Rate of CHN'] = 'n/a'
+    table = table.replace("Youth", "Youth-led HH").replace(
+                          "SameGender", "Same-gender HH").replace(
+                          "TransgenderNonBinary", "Transgender or Non-binary HH").replace(
+                          "MentalHealth",  "HH with cognitive, mental or addictions activity limitations").replace(
+                          "Veteran", "Veteran HH")
+    # Generating plot
+    fig = go.Figure()
+    for i, c in zip(table['Priority Populations'], colors):
+        plot_df_frag = table.loc[table['Priority Populations'] == i, :]
+        fig.add_trace(go.Bar(
+            y=plot_df_frag['Priority Populations'],
+            x=plot_df_frag['Rate of CHN'],
+            name=i,
+            marker_color=c,
+            orientation='h',
+            hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
+        ))
+
+    # Plot layout settings
+    fig.update_layout(
+        width=900,
+        showlegend=False,
+        legend=dict(font=dict(size=9)),
+        yaxis=dict(autorange="reversed"),
+        modebar_color=modebar_color,
+        modebar_activecolor=modebar_activecolor,
+        plot_bgcolor='#FFFFFF',
+        title=f'Percentage of Households in Core Housing Need, by Priority Population, 2021<br>{geo}',
+        legend_title="Priority Group",
+    )
+    fig.update_xaxes(
+        fixedrange=True,
+        range=[0, 1],
+        tickformat=',.0%',
+        title='% of Priority Population HH',
+        tickfont=dict(size=10)
+    )
+    fig.update_yaxes(
+        tickfont=dict(size=10),
+        fixedrange=True,
+        title='Priority Group'
+    )
+
+    return fig
+
+
+# output_12 housing co-ops
+@callback(
+    Output('output_12', 'columns'),
+    Output('output_12', 'data'),
+    Output('output_12', 'style_data_conditional'),
+    Output('output_12', 'style_cell_conditional'),
+    Output('output_12', 'style_header_conditional'),
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('output_12', 'selected_columns'),
+)
+def update_output_12(geo, geo_c, scale, selected_columns):
+    geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
+
+    # Generating table
+    table = table_generator(geo, output_12, 'output_12')
+    table = pd.DataFrame({'': 'Number of co-operative housing units', '2024' : table.values[0]} )
+    print("WHAT did i do 12", table)
+    #table = number_formatting(table, ['Number of Households in CHN'], 0)
+    #table = percent_formatting(table, ['Rate of CHN'], mult_flag=1, conditions={})
+
+    style_data_conditional = generate_style_data_conditional(table)
+    #style_header_conditional = generate_style_header_conditional(table)
+    style_header_conditional = [{
+        'backgroundColor': '#002145', #if index == 0 else '#39C0F7',
+        'color': '#FFFFFF', #  if index == 0 else '#000000',
+        'border': '1px solid #002145',
+        'border-bottom' : 'none'}]
+
+
+
+    table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
+
+    style_cell_conditional = [
+                                 {
+                                     'if': {'column_id': table_columns[0]['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'left',
+                                     "maxWidth": "50px"
+                                 }
+                             ] + [
+                                 {
+                                     'if': {'column_id': c['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'center'
+                                 } for c in table_columns[1:]
+                             ]
+
+    return table_columns, table.to_dict(
+        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+
+
+# output_13
+@callback(
+    Output('output_13', 'columns'),
+    Output('output_13', 'data'),
+    Output('output_13', 'style_data_conditional'),
+    Output('output_13', 'style_cell_conditional'),
+    Output('output_13', 'style_header_conditional'),
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('output_13', 'selected_columns'),
+)
+def update_output_13(geo, geo_c, scale, selected_columns):
+    geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
+
+    # Generating table
+    table = table_generator(geo, output_13, 'output_13')
+    #multiply by 100 and % formatting needed
+    table.drop_duplicates(inplace=True)
+    print("WHAT are the cols tbl 13", table)
+    #table = number_formatting(table, ['Number of Households in CHN'], 0)
+    #table = percent_formatting(table, ['Rate of CHN'], mult_flag=1, conditions={})
+
+
+    style_data_conditional = generate_style_data_conditional(table)
+    style_header_conditional = generate_style_header_conditional(table)
+    # table = table.replace("Youth", "HH head age 18-29 (Youth-led)").replace(
+    #                       "SameGender", "HH with Same-gender couple").replace(
+    #                       "TransgenderNonBinary", "HH with Transgender or non-binary couple").replace(
+    #                       "MentalHealth",  "HH with Person(s) dealing with mental health and addictions issues").replace(
+    #                       "Veteran", "HH with Veteran(s)")
+
+
+    table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
+
+    style_cell_conditional = [
+                                 {
+                                     'if': {'column_id': table_columns[0]['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'left',
+                                     "maxWidth": "50px"
+                                 }
+                             ] + [
+                                 {
+                                     'if': {'column_id': c['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'center'
+                                 } for c in table_columns[1:]
+                             ]
 
     return table_columns, table.to_dict(
         'records'), style_data_conditional, style_cell_conditional, style_header_conditional
