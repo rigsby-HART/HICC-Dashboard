@@ -620,7 +620,8 @@ class PrepareTables:
             output_11[f'{group}_Rate of CHN'] = subset[f'2021_CHN_{group}'].div(subset[f'2021_ExaminedForCHN_{group}'])
             #REMOVE WHEN WE GET THE REAL DATA TODO
             if group == 'SameGender' or group == 'TransgenderNonBinary':
-                output_11[subset.columns] = subset.replace(-1, np.nan).replace(1, np.nan)
+                output_11[f'{group}_Rate of CHN'] = np.nan
+                output_11[f'2021_CHN_{group}'] = np.nan
 
 
         # export to csv

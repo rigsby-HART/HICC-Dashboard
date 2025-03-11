@@ -316,7 +316,7 @@ layout = html.Div(children=[
 
                      dbc.Button("Export", id="export-table-17", className="mb-3", color="primary"),
                      dash_table.DataTable(
-                         id='output_11', #TODO callback
+                         id='output_11',
                          merge_duplicate_headers=True,
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
@@ -329,7 +329,9 @@ layout = html.Div(children=[
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
                                        }
-                     ), html.Div(id='output_11-container'),
+                     ),
+                     html.I("*Data on transgender, non-binary, or same-gender couples will be added once Statistics Canada has completed the data order."),
+                     html.Div(id='output_11-container'),
                      html.Br()
                  ], className='pg2-output11-lgeo'
                  ),
@@ -370,17 +372,20 @@ layout = html.Div(children=[
                  ),
 
 
-
-                 # output 13 TO BE RECEIVED TODO in round 2
+                 # output 13
                  html.Div([
-                     html.H4(children=html.Strong(f'The number of affordable units for low and very low-income households built, and the number lost ')),
+                     html.H4(children=html.Strong(f'The number of affordable rental units for low and very low-income households built, and the number lost ')),
                      html.H5(children=html.Strong('HICC HNA Template: Section 5.3'),
                              id='visualization6'),
-                     html.H6('The following table estimates the number of dwellings affordable to low and very-low income households built and lost between 2016 and 2021. We define low and very-low income households as those households whose income is equal to or less than 50% of the area median household income in a given year. For this calculation, “area” refers to the census subdivision.'),
+                     html.H6(children=[
+                         'The following table estimates the number of rental dwellings affordable to low and very-low income households built and lost between 2016 and 2021. We define low and very-low income rental households as those rental households whose income is equal to or less than 50% of the area median household income in a given year. To understand how we calculated affordable units gained or lost, see our ',
+                          html.A(" methodology document.", href='https://hart.ubc.ca/federal-hna-template-methodology/',target="_blank")
+                         ]),
 
+                     html.H6("In some cases, affordable units from existing stock (built prior 2016) are gained. This can be due to factors such as stagnating rents in aging buildings or increases to AMHI. Gains in affordable units in the 'Number of units affordable to low and very low-income households - Lost' measure are represented by negative values. "),
                      dbc.Button("Export", id="export-table-18", className="mb-3", color="primary"),
                      dash_table.DataTable(
-                         id='output_13', #TODO callback
+                         id='output_13',
                          merge_duplicate_headers=True,
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
@@ -393,7 +398,9 @@ layout = html.Div(children=[
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
                                        }
-                     ), html.Div(id='output_13-container'),
+                     ),
+                     html.I("*Note: Due to differences in available responses used in the long-form census between 2016 and 2021 regarding period of construction, this estimate of units lost will double-count any units built between January 1, 2016 and May 10, 2016 (i.e. census day 2016). The 2016 long-form census uses the period “2011-2016” as an option for the dwelling’s period of construction while the 2021 long-form census uses the periods “2011-2015,” “2016-2020,” and “2021” as the possible options."),
+                     html.Div(id='output_13-container'),
                      html.Br()
                  ], className='pg2-output13-lgeo'
                  ),
@@ -751,7 +758,10 @@ layout = html.Div(children=[
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
                                        }
-                     ), html.Br(),
+                     ),
+                     html.I("*Data represents co-ops registered with the Co-operative Housing Federation of Canada (CHF Canada) extracted as of <<extract date TBD>> and may not include all co-ops."),
+                     html.Br(),
+                     html.Br()
                  ], className='pg2-output12-lgeo'),
 
                  # HICC Section 5.9.2, data point 4a and 4b tables
@@ -898,15 +908,17 @@ def generate_additional_data_style(data, data_columns):
 
 def generate_style_header_conditional(columns):
     style_conditional = []
-
+    # print("len", len(columns), columns)
+    # print("enumerated", enumerate(columns))
     for index, col in enumerate(columns):
+        # print('index', index, "col", col)
         header_style = {
             'if': {'header_index': index},
             'backgroundColor': '#002145' if index == 0 else '#39C0F7',
             'color': '#FFFFFF' if index == 0 else '#000000',
             'border': '1px solid #002145',
+            # 'textAlign': 'right',
         }
-
         # Remove bottom border if sub-header is empty
         if col[1] == '':
             header_style['border-bottom'] = 'none'
@@ -1049,6 +1061,7 @@ def table_generator(geo, df, table_id):
         filtered_df = filtered_df.melt(id_vars=filtered_df.columns[:5], var_name="Metric", value_name="2021")
 
     elif table_id == 'output_11':
+        print("working with this 11", filtered_df)
         # melt into format where marginal group is in the rows and colums = 'Number of Households in CHN' 'Rate of CHN'
         melted_rates = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars= ["Veteran_Rate of CHN", "Youth_Rate of CHN", "SameGender_Rate of CHN", "TransgenderNonBinary_Rate of CHN", "MentalHealth_Rate of CHN", "All_Rate of CHN"], var_name= 'Priority Populations', value_name="Rate of CHN" )
         melted_rates_col = melted_rates['Rate of CHN']
@@ -1057,9 +1070,12 @@ def table_generator(geo, df, table_id):
         priority_pops = [x.split("_")[2] for x in filtered_df['Priority Populations'].values]
         filtered_df['Priority Populations'] = priority_pops
         new_header = ['Households in Core Housing Need (CHN) by priority population, 2021'] * (len(filtered_df.columns))
-        # filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
-        # print("NEW HEADER 11", filtered_df.columns[0])
+        filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
 
+    elif table_id == 'output_13':
+        # melt into longer format
+        melted_counts = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars=['2016to2021_AffordableUnits_Built', '2016to2021_AffordableUnits_Lost', 'Net Change in Affordable Units'], var_name= 'delete_me', value_name = 'totals')
+        filtered_df = melted_counts
     else:
 
         filtered_df = filtered_df
@@ -1166,13 +1182,13 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'left',
-                                     "maxWidth": "100px"
+                                     "maxWidth": "100px"   #"maxWidth": "50px"  #CHANGE THIS to update the column width according to doc
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'centre'
                                  } for c in table_columns[1:]
                              ]
     
@@ -1182,7 +1198,9 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
                 'backgroundColor': '#b0e6fc',
                 'color': '#b0e6fc',
                 'border-top': 'none',
-                'rowSpan': 2
+                'rowSpan': 2,
+                "maxWidth": "170px",
+                'textAlign': 'right'
 
             } for i in [1, 3]
         ]
@@ -1274,7 +1292,10 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
                 'backgroundColor': '#b0e6fc',
                 'color': '#b0e6fc',
                 'border-top': 'none',
-                'rowSpan': 2
+                'rowSpan': 2,
+                "maxWidth": "180px",
+                'textAlign': 'right'
+
 
             } for i in [1, 3]
         ]
@@ -1706,8 +1727,10 @@ def update_output_4a(geo, geo_c, scale, selected_columns):
     table.drop_duplicates(inplace=True)
 
     table = number_formatting(table, list(table.columns[1:]), 0)
+    print("why table 4 working", table)
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
+    print("Styled table 4 header", style_header_conditional)
     table = table.rename(columns={'Metric': ''})
 
     # Generating callback output to update table
@@ -2241,10 +2264,11 @@ def update_output_6(geo, geo_c, scale, selected_columns):
 
     table = table[['Header to be deleted', 'Metric', '2021']]
     table = table.rename(columns={'Metric': '', 'Header to be deleted': ' '}).replace(' Rental Units', '', regex=True)
-
+    print("table 6 before header styling", table)
     # Generating callback output to update table
 
     table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
+    print("Tbl 6 columns", table_columns)
     style_cell_conditional = [
                                  {
                                      'if': {'column_id': table_columns[0]['id']},
@@ -2706,14 +2730,14 @@ def update_output_10a(geo, geo_c, scale, selected_columns):
                                  {
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'left',
-                                     "maxWidth": "50px"
+                                     'textAlign': 'right',
+                                     "maxWidth": "50px"  #CHANGE THIS to update the column width according to doc
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'right'
                                  } for c in table_columns[1:]
                              ]
     #TODO: Use this if alignment is required as per the doc
@@ -2725,15 +2749,15 @@ def update_output_10a(geo, geo_c, scale, selected_columns):
     #                             }
     #                             for i in range(len(table_columns))
     #                         ]
-    # new_header_style = [
-    #     {
-    #     'if': {'column_id': col['id']},  
-    #     'textAlign': 'left' if col['id'] == table_columns[0]['id'] else 'right'
-    #     }
-    #     for col in table_columns
-    # ]
+    new_header_style = [
+        {
+        'if': {'column_id': col['id']},
+        'textAlign': 'center' if col['id'] == table_columns[0]['id'] else 'right'
+        }
+        for col in table_columns
+    ]
 
-    # style_header_conditional.extend(new_header_style)
+    style_header_conditional.extend(new_header_style)
     return table_columns, table_data, style_data_conditional, style_cell_conditional, style_header_conditional
 
 
@@ -2811,33 +2835,37 @@ def update_output_10b(geo, geo_c, scale, selected_columns):
 )
 def update_output_11(geo, geo_c, scale, selected_columns):
     geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
-
     # Generating table
     table = table_generator(geo, output_11, 'output_11')
     #multiply by 100 and % formatting needed
     table.drop_duplicates(inplace=True)
-    table = number_formatting(table, ['Number of Households in CHN'], 0)
-    table = percent_formatting(table, ['Rate of CHN'], mult_flag=1, conditions={})
-    # TODO remove when we get the real data
-    table.loc[table['Priority Populations'].isin(['SameGender', 'TransgenderNonBinary']), 'Rate of CHN' ] = 'n/a'
+    table = number_formatting(table, [('Households in Core Housing Need (CHN) by priority population, 2021','Number of Households in CHN')], 0)
+    table = percent_formatting(table, [('Households in Core Housing Need (CHN) by priority population, 2021', 'Rate of CHN')], mult_flag=1, conditions={})
 
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
     table = table.replace("Youth", "HH head age 18-29 (Youth-led)").replace(
-                          "SameGender", "HH with Same-gender couple").replace(
-                          "TransgenderNonBinary", "HH with Transgender or non-binary couple").replace(
+                          "SameGender", "HH with Same-gender couple*").replace(
+                          "TransgenderNonBinary", "HH with Transgender or non-binary couple*").replace(
                           "MentalHealth",  "HH with Person(s) dealing with mental health and addictions issues").replace(
                           "Veteran", "HH with Veteran(s)").replace("All", "All HHs")
 
-
-    table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
-
+    table_columns = [{"name": [geo, col1, col2], "id": f"{col1}_{col2}"} for col1, col2 in table.columns]
+    print("table_columns", table_columns)
+    table_data = [
+        {
+            **{f"{x1}_{x2}": y for (x1, x2), y in data},
+        }
+        for (n, data) in [
+            *enumerate([list(x.items()) for x in table.T.to_dict().values()])
+        ]
+    ]
     style_cell_conditional = [
                                  {
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'left',
-                                     "maxWidth": "50px"
+                                     'textAlign': 'right',
+                                     "maxWidth": "200px"
                                  }
                              ] + [
                                  {
@@ -2845,7 +2873,7 @@ def update_output_11(geo, geo_c, scale, selected_columns):
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'center'
                                  } for c in table_columns[1:]
-                             ]
+                          ]
 
     new_data_style = [
         {
@@ -2858,9 +2886,15 @@ def update_output_11(geo, geo_c, scale, selected_columns):
 
     ]
     style_data_conditional.extend(new_data_style)
+    for index, col in enumerate(table):
+        print('FIXX index', index, "col", col)
+        header_style = {  'if': {'header_index': 2, 'column_id': 'Households in Core Housing Need (CHN) by priority population, 2021_Priority Populations' },
+            'textAlign': 'right',
+        }
 
-    return table_columns, table.to_dict(
-        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+        style_header_conditional.append(header_style)
+
+    return table_columns, table_data, style_data_conditional, style_cell_conditional, style_header_conditional
 
 # graph 11
 @callback(
@@ -2878,35 +2912,24 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
     table = table_generator(geo, output_11, 'output_11')
     table.drop_duplicates(inplace=True)
     # TODO remove when we get the real data
-    table.loc[table['Priority Populations'].isin(['SameGender', 'TransgenderNonBinary']), 'Rate of CHN'] = 'n/a'
+    #table.loc[table['Priority Populations'].isin(['SameGender', 'TransgenderNonBinary']), 'Rate of CHN'] = 'n/a'
     table = table.replace("Youth", "Youth-led HH").replace(
                           "SameGender", "Same-gender HH").replace(
                           "TransgenderNonBinary", "Transgender or Non-binary HH").replace(
                           "MentalHealth",  "HH with cognitive, mental or addictions activity limitations").replace(
                           "Veteran", "Veteran HH").replace("All", "Community (all HHs)")
-    print("MAKING graph for table 11 with" , table)
     # Generating plot
     fig = go.Figure()
-    for i in table['Priority Populations'][:-1]:
-        plot_df_frag = table.loc[table['Priority Populations'] == i, :]
+    for i in table[('Households in Core Housing Need (CHN) by priority population, 2021','Priority Populations')]:
+        plot_df_frag = table.loc[table[('Households in Core Housing Need (CHN) by priority population, 2021','Priority Populations')] == i, :]
         fig.add_trace(go.Bar(
-            y=plot_df_frag['Priority Populations'],
-            x=plot_df_frag['Rate of CHN'],
+            y=plot_df_frag[('Households in Core Housing Need (CHN) by priority population, 2021', 'Priority Populations')],
+            x=plot_df_frag[('Households in Core Housing Need (CHN) by priority population, 2021', 'Rate of CHN')],
             name=i,
-            marker_color="#39C0F7",
+            marker_color="#3EB549" if i=='Community (all HHs)' else "#39C0F7" ,
             orientation='h',
             hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
         ))
-    #add diff color bar for all community
-    plot_df_frag = table.loc[table['Priority Populations'] == 'Community (all HHs)', :]
-    fig.add_trace(go.Bar(
-        y=plot_df_frag['Priority Populations'],
-        x=plot_df_frag['Rate of CHN'],
-        name='Community (all HHs)',
-        marker_color="#3EB549",
-        orientation='h',
-        hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
-    ))
 
 
     # Plot layout settings
@@ -2955,9 +2978,6 @@ def update_output_12(geo, geo_c, scale, selected_columns):
     # Generating table
     table = table_generator(geo, output_12, 'output_12')
     table = pd.DataFrame({'': 'Number of co-operative housing units', '2024' : table.values[0]} )
-    print("WHAT did i do 12", table)
-    #table = number_formatting(table, ['Number of Households in CHN'], 0)
-    #table = percent_formatting(table, ['Rate of CHN'], mult_flag=1, conditions={})
 
     style_data_conditional = generate_style_data_conditional(table)
     #style_header_conditional = generate_style_header_conditional(table)
@@ -3009,28 +3029,35 @@ def update_output_13(geo, geo_c, scale, selected_columns):
     table = table_generator(geo, output_13, 'output_13')
     #multiply by 100 and % formatting needed
     table.drop_duplicates(inplace=True)
-    print("WHAT are the cols tbl 13", table)
     #table = number_formatting(table, ['Number of Households in CHN'], 0)
     #table = percent_formatting(table, ['Rate of CHN'], mult_flag=1, conditions={})
 
-
-    style_data_conditional = generate_style_data_conditional(table)
+    #style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
-    # table = table.replace("Youth", "HH head age 18-29 (Youth-led)").replace(
-    #                       "SameGender", "HH with Same-gender couple").replace(
-    #                       "TransgenderNonBinary", "HH with Transgender or non-binary couple").replace(
-    #                       "MentalHealth",  "HH with Person(s) dealing with mental health and addictions issues").replace(
-    #                       "Veteran", "HH with Veteran(s)")
+    table = table[['delete_me', 'totals']]
+    table = table.replace("2016to2021_AffordableUnits_Built", "Number of affordable rental units for low and very low-income households built between 2016 and 2021").replace(
+                          "2016to2021_AffordableUnits_Lost", "Number of affordable rental units for low and very low-income households lost   between 2016 and 2021*").replace(
+                          "Net Change in Affordable Units", "Net change in affordable rental units for low and very-low income households between 2016 and 2021")
+    table = table.rename(columns={'delete_me': '', 'totals': ' '})
+    # style_header_conditional = []
+    # for index, col in enumerate(table):
+    #     print('index', index, "col", col)
+    #     header_style = {
+    #         'if': {'header_index': index},
+    #         'backgroundColor': '#002145' if index == 0 else '#39C0F7', #also want #E12FA for third row
+    #         'color': '#FFFFFF' if index == 0 else '#000000',
+    #         'border': '1px solid #002145',
+    #     }
+    #     style_header_conditional.append(header_style)
 
 
     table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
-
     style_cell_conditional = [
                                  {
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'left',
-                                     "maxWidth": "50px"
+                                     'textAlign': 'center',
+                                     "maxWidth": "100px"
                                  }
                              ] + [
                                  {
@@ -3039,6 +3066,58 @@ def update_output_13(geo, geo_c, scale, selected_columns):
                                      'textAlign': 'center'
                                  } for c in table_columns[1:]
                              ]
+    style_data_conditional = []
+    for i in range(len(table)):
+        row_style = {
+            'if': {'row_index': i},
+            'backgroundColor': '#39C0F7' if i == 0 else '#b0e6fc',
+            'color': '#000000',
+            'border': '1px solid #002145'
+        }
+        if i == 2:
+            row_style = {
+                'if': {'row_index': i},
+                'backgroundColor': '#E1F2FA',
+                'color': '#000000',
+                'border': '1px solid #002145'
+            }
+
+        style_data_conditional.append(row_style)
+
+    for index, col in enumerate(table):
+        # print('index', index, "col", col)
+        header_style = {
+            'if': {'header_index': index},
+            'backgroundColor': '#002145' if index == 0 else 'transparent',
+            'color': '#FFFFFF' if index == 0 else 'transparent',
+            'border-left': 'none',
+            'border-right': 'none'}
+
+        style_header_conditional.append(header_style)
+
+    # blank_row_style = [
+    #     {
+    #         'if': {'header_index': index},
+    #         'color': 'transparent',
+    #         'backgroundColor': 'transparent',
+    #         'border-left': 'none',
+    #         'border-right': 'none'
+    #     } for j in table_columns
+    # ]
+    # style_data_conditional.extend(blank_row_style)
+    # for i in range(len(table)):
+    #     row_style = {
+    #         'if': {'row_index': i},
+    #         #'backgroundColor': '#b0e6fc' if i == 1 else '#39C0F7', #also want #E1F2FA for third row
+    #         #'backgroundColor' : '#E1F2FA' if i == 2 else '#39C0F7',
+    #         **({"backgroundColor": "#E1F2FA"} if i == 2 else {"backgroundColor": "#39C0F7"}),
+    #         **({"backgroundColor": "#b0e6fc"} if i == 1 else {"backgroundColor": "#39C0F7"}),
+    #         'color': '#000000',
+    #         'border': '1px solid #002145'
+    #     }
+    #
+    #     style_data_conditional.append(row_style)
+
 
     return table_columns, table.to_dict(
         'records'), style_data_conditional, style_cell_conditional, style_header_conditional
