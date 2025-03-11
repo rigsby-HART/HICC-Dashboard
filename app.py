@@ -83,7 +83,7 @@ table_functions = {
 
 @app.callback(
     Output("download-dataframe-xlsx", "data"),
-    [Input(f"export-table-{i}", "n_clicks") for i in range(1, 17)] +
+    [Input(f"export-table-{i}", "n_clicks") for i in range(1, 20)] +
     [State('main-area', 'data'), State('comparison-area', 'data'), State('area-scale-store', 'data')],
     prevent_initial_call=True,
 )

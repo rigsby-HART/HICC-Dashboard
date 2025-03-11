@@ -1727,10 +1727,8 @@ def update_output_4a(geo, geo_c, scale, selected_columns):
     table.drop_duplicates(inplace=True)
 
     table = number_formatting(table, list(table.columns[1:]), 0)
-    print("why table 4 working", table)
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
-    print("Styled table 4 header", style_header_conditional)
     table = table.rename(columns={'Metric': ''})
 
     # Generating callback output to update table
@@ -1748,14 +1746,14 @@ def update_output_4a(geo, geo_c, scale, selected_columns):
                                  {
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'left',
+                                     'textAlign': 'right',
                                      "maxWidth": "50px"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'right'
                                  } for c in table_columns[1:]
                              ]
     new_data_style = [
@@ -1769,6 +1767,12 @@ def update_output_4a(geo, geo_c, scale, selected_columns):
 
                      ]
     style_data_conditional.extend(new_data_style)
+
+    for index, col in enumerate(table):  #set all columns to right align
+        header_style = {  'if': {'header_index': 2 },
+            'textAlign': 'right',
+        }
+        style_header_conditional.append(header_style)
 
     return table_columns, table_data, style_data_conditional, style_cell_conditional, style_header_conditional
 
@@ -1810,14 +1814,14 @@ def update_output_4b(geo, geo_c, scale, selected_columns):
                                  {
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'left',
+                                     'textAlign': 'right',
                                      "maxWidth": "100px"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'right'
                                  } for c in table_columns[1:]
                              ]
     new_data_style = [
@@ -1832,6 +1836,11 @@ def update_output_4b(geo, geo_c, scale, selected_columns):
                      ]
     style_data_conditional.extend(new_data_style)
 
+    for index, col in enumerate(table):  #set all columns to right align
+        header_style = {  'if': {'header_index': 2 },
+            'textAlign': 'right',
+        }
+        style_header_conditional.append(header_style)
     return table_columns, table_data, style_data_conditional, style_cell_conditional, style_header_conditional
 
 
@@ -2887,7 +2896,6 @@ def update_output_11(geo, geo_c, scale, selected_columns):
     ]
     style_data_conditional.extend(new_data_style)
     for index, col in enumerate(table):
-        print('FIXX index', index, "col", col)
         header_style = {  'if': {'header_index': 2, 'column_id': 'Households in Core Housing Need (CHN) by priority population, 2021_Priority Populations' },
             'textAlign': 'right',
         }
