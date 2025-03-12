@@ -40,6 +40,10 @@ class DBUploader:
         self.insert_data(self.output_9, self.Output_9)
         self.insert_data(self.output_10a, self.Output_10a)
         self.insert_data(self.output_10b, self.Output_10b)
+        self.insert_data(self.output_11, self.Output_11)
+        self.insert_data(self.output_12, self.Output_12)
+        self.insert_data(self.output_13, self.Output_13)
+
         
 
         print('Database ready....')
@@ -230,10 +234,46 @@ class DBUploader:
         # Dynamically add columns after fetching the DataFrame
         self.add_dynamic_columns(self.Output_10b, self.output_10b, 'Age')
 
+        class Output_11(self.db_base):
+            __tablename__ = "output_11"
+            pk = Column(Integer, primary_key=True, comment='primary key')  # Add Primary Key
+
+        self.Output_11 = Output_11  # Assign the class
+
+        # Fetch and store data
+        self.output_11 = self.pt.prepare_output_11()  # Ensure this returns a DataFrame
+
+        # Dynamically add columns after fetching the DataFrame
+        self.add_dynamic_columns(self.Output_11, self.output_11, 'Metric')
+
+        class Output_12(self.db_base):
+            __tablename__ = "output_12"
+            pk = Column(Integer, primary_key=True, comment='primary key')  # Add Primary Key
+
+        self.Output_12 = Output_12  # Assign the class
+
+        # Fetch and store data
+        self.output_12 = self.pt.prepare_output_12()  # Ensure this returns a DataFrame
+
+        # Dynamically add columns after fetching the DataFrame
+        self.add_dynamic_columns(self.Output_12, self.output_12, 'Metric')
+
+        class Output_13(self.db_base):
+            __tablename__ = "output_13"
+            pk = Column(Integer, primary_key=True, comment='primary key')  # Add Primary Key
+
+        self.Output_13 = Output_13  # Assign the class
+
+        # Fetch and store data
+        self.output_13 = self.pt.prepare_output_13()  # Ensure this returns a DataFrame
+
+        # Dynamically add columns after fetching the DataFrame
+        self.add_dynamic_columns(self.Output_13, self.output_13, 'Metric')
 
 
-        # Create all tables
+        ##### Create all tables #######################################################################
         self.db_base.metadata.create_all(self.engine)
+
 
 
 

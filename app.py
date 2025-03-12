@@ -76,11 +76,14 @@ table_functions = {
     'export-table-12': (update_output_9, "Output9"),
     'export-table-13': (update_output_10a, "Output10a"),
     'export-table-14': (update_output_10b, "Output10b"),
+    'export-table-17': (update_output_11, "Output11"),
+    'export-table-19': (update_output_12, "Output12"),
+    'export-table-18': (update_output_13, "Output13"),
 }
 
 @app.callback(
     Output("download-dataframe-xlsx", "data"),
-    [Input(f"export-table-{i}", "n_clicks") for i in range(1, 17)] +
+    [Input(f"export-table-{i}", "n_clicks") for i in range(1, 20)] +
     [State('main-area', 'data'), State('comparison-area', 'data'), State('area-scale-store', 'data')],
     prevent_initial_call=True,
 )
