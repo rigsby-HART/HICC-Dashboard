@@ -132,7 +132,7 @@ layout = html.Div(children=[
                      html.Div([
                          html.H6(
                              'The following table shows the number of households within 800 meters and 200 meters of rail/light-rail transit station respectively. '
-                             'It also shows the percentage of households within the community that are within 800 or 200 meters of a station. The number of households comes from the 2021 census. ',),
+                             'It also shows the percentage of households within the community that are within 800 or 200 meters of a station. The number of households comes from the 2021 census, but the location of rail stations include all that serve commuter rail networks as of the end of 2024. ',),
                              #style={'fontFamily': 'Open Sans, sans-serif'}),
                          dbc.Button("Export", id="export-table-15", className="mb-3", color="primary"),
                          dash_table.DataTable(
@@ -159,9 +159,9 @@ layout = html.Div(children=[
 
                  # 1. HICC Section 3.1.1, data point 1. Output 1b
                      html.Div([
-                         html.H6("The following table shows the number of households within 800 meters and 200 meters of existing and under construction"
-                                 " rail/light-rail transit station respectively. It also shows the percentage of households within the community that are "
-                                 "within 800 or 200 meters of an existing or under construction station. The number of households comes from the 2021 census, but the location of rail stations include all that serve commuter rail networks."),
+                         html.H6("The following table shows the number of households within 800 meters and 200 meters of existing and under construction rail/light-rail transit stations respectively."
+                                 " It also shows the percentage of households within the community that are within 800 or 200 meters of an existing or under construction station. "
+                                 "The number of households comes from the 2021 census, but the location of rail stations include all that serve commuter rail networks."),
                          dbc.Button("Export", id="export-table-16", className="mb-3", color="primary"),
                          dash_table.DataTable(
                          id='output_1b',
@@ -242,7 +242,7 @@ layout = html.Div(children=[
                      # Tables
                      html.H6(children=[
                              f'This section calculates the estimated number of Suppressed Households (households that would have formed if not for housing affordability challenges) according to the methodology used in the ',
-                             html.A("'Province of British Columbia’s HNR Method,", href='https://www2.gov.bc.ca/assets/gov/housing-and-tenancy/tools-for-government/uploads/hnr_method_technical_guidelines.pdf', target="_blank"),
+                             html.A("Province of British Columbia’s HNR Method,", href='https://www2.gov.bc.ca/assets/gov/housing-and-tenancy/tools-for-government/uploads/hnr_method_technical_guidelines.pdf', target="_blank"),
                              ' specifically Component C: housing units and suppressed household formation.',
 
                      ]),
@@ -302,17 +302,10 @@ layout = html.Div(children=[
 
                  # 3. HICC Section 4.1, data point 11.
                      html.Div([
-                     html.H4(children=html.Strong(f'Priority groups by core housing need status: Youth 18-29, Same-gender couples, Transgender or non-binary couples, People dealing with mental health and addictions issues, and Veterans')),
+                     html.H4(children=html.Strong(f'Priority groups by Core Housing Need status')),
                      html.H5(children=html.Strong('HICC HNA Template: Section 4.1'),
                              id='visualization6'),
-                     html.H6(
-                         f'The following chart shows the percentage of households in CHN for each population group.',
-                     ),
-                     dcc.Graph(id='graph_11',
-                              figure=fig1,
-                              config=config,
-                     ),
-                     html.H6('The following table show the number of households in core housing need (CHN) for certain population groups, along with the percentage of households in CHN  for each group. '
+                     html.H6('The following table show the number of households in Core Housing Need (CHN) for certain population groups, along with the percentage of households in CHN  for each group. '
                              'Rate of CHN is calculated as the number of households in CHN divided by the number of households examined for CHN*. '),
 
                      dbc.Button("Export", id="export-table-17", className="mb-3", color="primary"),
@@ -331,12 +324,21 @@ layout = html.Div(children=[
 
                                        }
                      ),
+                     html.P("Please note that Statistics Canada employs rounding and suppression for small populations, and so a zero count may not necessarily represent zero households, but too few to report."),
                      html.I(children= [
                          "*The census does not evaluate all households for Core Housing Need – ",
                          html.A("see more here", href="https://www23.statcan.gc.ca/imdb/p3Var.pl?Function=DEC&Id=1230313", target='_blank')
                      ]),
                      html.Br(),
                      html.I("**Data on transgender, non-binary, or same-gender couples will be added once Statistics Canada has completed the data order."),
+                     html.H6(
+                         f'The following graph illustrates the above table, displaying the percentage of households in CHN for each population group.',
+                     ),
+                     dcc.Graph(id='graph_11',
+                              figure=fig1,
+                              config=config,
+                     ),
+
                      html.Div(id='output_11-container'),
                      html.Br()
                  ], className='pg2-output11-lgeo'
@@ -385,11 +387,12 @@ layout = html.Div(children=[
                      html.H5(children=html.Strong('HICC HNA Template: Section 5.3'),
                              id='visualization6'),
                      html.H6(children=[
-                         'The following table estimates the number of rental dwellings affordable to low and very-low income households built and lost between 2016 and 2021. We define low and very-low income rental households as those rental households whose income is equal to or less than 50% of the area median household income in a given year. To understand how we calculated affordable units gained or lost, see our ',
-                          html.A(" methodology document.", href='https://hart.ubc.ca/federal-hna-template-methodology/',target="_blank")
+                         "The following table estimates the number of rental dwellings affordable to low and very-low income households built and lost between 2016 and 2021. We define low and very-low income rental households as those rental households whose income is equal to or less than 50% of the area median household income in a given year.",
+                         html.Br(),
+                         "To understand how we calculated affordable units gained or lost, see our methodology. "
                          ]),
 
-                     html.H6("In some cases, affordable units from existing stock (built prior 2016) are gained. This can be due to factors such as stagnating rents in aging buildings or increases to AMHI. Gains in affordable units in the 'Number of units affordable to low and very low-income households - Lost' measure are represented by negative values. "),
+                     html.H6("In some cases, affordable units from existing stock (built prior 2016) are gained. This can be due to factors such as stagnating rents in aging buildings or increases to household incomes. Gains in affordable units are represented by negative values."),
                      dbc.Button("Export", id="export-table-18", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_13',
@@ -400,13 +403,24 @@ layout = html.Div(children=[
                                      'height': 'auto',
                                      'whiteSpace': 'normal',
                                      'overflow': 'hidden',
-                                     'textOverflow': 'ellipsis'
+                                     'textOverflow': 'ellipsis',
+                                     'textAlign': 'right'
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
+                                       },
+                         css=[{
+                                'selector': 'tr:nth-child(2)',
+                                'rule':'''
+                                        display: None;
+                                '''
+                              }],
 
-                                       }
                      ),
-                     html.I("*Note: Due to differences in available responses used in the long-form census between 2016 and 2021 regarding period of construction, this estimate of units lost will double-count any units built between January 1, 2016 and May 10, 2016 (i.e. census day 2016). The 2016 long-form census uses the period “2011-2016” as an option for the dwelling’s period of construction while the 2021 long-form census uses the periods “2011-2015,” “2016-2020,” and “2021” as the possible options."),
+                     html.I(children=[
+                         "*Note: Due to differences in available responses used in the long-form census between 2016 and 2021 regarding period of construction, ",
+                         'this estimate of units lost will double-count any units built between January 1, 2016 and May 10, 2016 (i.e. census day 2016). For more information, please consult our ',
+                          html.A("methodology.", href="https://hart.ubc.ca/federal-hna-template-methodology/", target="_blank")
+                        ]),
                      html.Div(id='output_13-container'),
                      html.Br()
                  ], className='pg2-output13-lgeo'
@@ -415,7 +429,7 @@ layout = html.Div(children=[
 
                  # 6. HICC Section 5.4, data point 2. Output 2a
                  html.Div([
-                     html.H4(children=[html.Strong('The Change in Average Rents Between 2016 and 2023')],
+                     html.H4(children=[html.Strong('Change in Average Rents Between 2016 and 2023')],
                              id='visualization2a'),
                      html.H5("HICC HNA Template: Section 5.4",
                              # style={'fontFamily': 'Open Sans, sans-serif'}
@@ -476,7 +490,7 @@ layout = html.Div(children=[
 
                  # 6. HICC Section 5.4, data point 2. Output 2b
                  html.Div([
-                     html.H6('The following table shows the detailed yearly change in monthly rent for primary rental units as a dollar amount and as a percentage.',
+                     html.H6('The following table shows the annual change in monthly rent for primary rental units both as a dollar amount and as a percentage.',
                              ),
                      dbc.Button("Export", id="export-table-2", className="mb-3", color="primary"),
                      dash_table.DataTable(
@@ -502,7 +516,7 @@ layout = html.Div(children=[
 
                  # output 3 charts
                  html.Div([
-                 html.H4(children=html.Strong('The Change in Vacancy Rates Between 2016 and 2023'),
+                 html.H4(children=html.Strong('Change in Vacancy Rates Between 2016 and 2023'),
                          id='visualization3a'),
                  html.H5(
                      f'HICC HNA Template: Section 5.5',
@@ -532,7 +546,7 @@ layout = html.Div(children=[
                                    }
                  ),
                  html.Br(),
-                 html.H6('The following chart shows the vacancy rate for each year.'),
+                 html.H6('The following graph illustrates the above table, displaying the vacancy rate of primary rental units as a percentage each year.'),
 
                  # Plot
                  html.Div([
@@ -562,7 +576,7 @@ layout = html.Div(children=[
                      ),
                  html.Br(),
                  # Second graph change in vacancy rates
-                 html.H6(f'The following chart shows the change in the vacancy rate between years as percentage points.',
+                 html.H6(f'The following graph illustrates the above table, displaying the change in the vacancy rate of primary rental units between years as percentage points.',
                      ),
                  dcc.Graph(id='graph_3b',
                            figure=fig2,
@@ -588,8 +602,7 @@ layout = html.Div(children=[
                  html.H5("HICC HNA Template: Question 5.6"),
 
                  # TABLE
-                 html.H6("The following table shows the number of households in CHN among owner-occupied and tenant-occupied households in 2016 and 2021.",
-                         #style={'fontFamily': 'Open Sans, sans-serif'}
+                 html.H6("The following table shows the number of households in Core Housing Need (CHN) among owner-occupied and tenant-occupied households in 2016 and 2021. Please note that tenant-occupied includes both primary and secondary rental market households.",
                          ),
                  dbc.Button("Export", id="export-table-7", className="mb-3", color="primary"),
                  dash_table.DataTable(
@@ -609,8 +622,7 @@ layout = html.Div(children=[
                     ),
                  html.Br(),
                  html.H6(
-                     f'The following chart shows the number of households in Core Housing Need (CHN) among owner-occupied and tenant-occupied households in 2016 and 2021. Please note that tenant-occupied includes both primary and secondary rental market households.',
-                     #style={'fontFamily': 'Open Sans, sans-serif'}
+                     f"The following chart illustrates the above table, displaying the number of households in CHN among owner-occupied and tenant-occupied households in 2016 and 2021.",
                  ),
                  # output 5 bar charts
                  html.Div([
@@ -641,13 +653,13 @@ layout = html.Div(children=[
                                  'textOverflow': 'ellipsis'
                                  },
                      style_header={'textAlign': 'center', 'fontWeight': 'bold',
-
-                                   }
+                                   },
+                     style_table={'width': '70%', 'margin': 'left'},
                      ),
                  html.Br(),
 
                  html.H6(
-                     f'The following chart shows the rate of CHN among owner-occupied and tenant-occupied households in 2016 and 2021. ',
+                     f'The following chart illustrates the above table, displaying the rate of CHN among owner-occupied and tenant-occupied households in 2016 and 2021.',
                      #style={'fontFamily': 'Open Sans, sans-serif'}
                  ),
                  dcc.Graph(id='graph_5b',
@@ -671,7 +683,8 @@ layout = html.Div(children=[
                  html.H5(html.Strong("HICC HNA Template: Section 5.7.1")),
                  # tables
                  html.H6(
-                     "The following table shows the number of rental housing units that received a housing subsidy in 2021, as well as those that were renting in the private rental market, per the census. Subsidized housing includes rent geared to income, social housing, public housing, government-assisted housing, non-profit housing, rent supplements and housing allowances."),
+                     "The following table shows the number of rental housing units in 2021 that were subsidized or unsubsidized, per the census. "
+                     "Subsidized housing includes rent geared to income, social housing, public housing, government-assisted housing, non-profit housing, rent supplements and housing allowances. Unsubsidized housing is in the private rental market without rent assistance."),
                  dbc.Button("Export", id="export-table-10", className="mb-3", color="primary"),
                  dash_table.DataTable(
                      id='output_7',
@@ -685,13 +698,13 @@ layout = html.Div(children=[
                                  'textOverflow': 'ellipsis'
                                  },
                      style_header={'textAlign': 'center', 'fontWeight': 'bold',
-
-                                   }
+                                   },
+                     style_table={'width': '70%', 'margin': 'left'}
                  ),
                  html.Br(),
                  html.Div([
                      html.H6(
-                         f'The following chart shows the relative size of the subsidized and private (i.e. unsubsidized) rental units as a share of all rental units.',
+                         f'The following chart shows the relative size of the subsidized and unsubsidized rental units as a share of all rental units.',
                      ),
                      dcc.Graph(id='pie_7',
                                figure=fig1,
@@ -711,14 +724,6 @@ layout = html.Div(children=[
                              id='visualization8'),
                      html.H5(html.Strong("HICC HNA Template: Section 5.7.1")),
                      html.H6("The following table shows the number of unsubsidized occupied rental housing units with below-market* rent in 2021, per the census. It also shows the percentage of occupied housing units with a below-market* rent as a percentage of all private occupied rental housing units."),
-
-                     html.H6('We define “below-market rent” as any shelter cost that would be affordable to a household who earned 80% of area median '
-                             'household income (AMHI), where affordable means that the household pays no more than 30% of it’s pre-tax income on shelter costs.'),
-                     html.H6(  "Example: If the community's AMHI was $90,000 per year, a household earning 80% "
-                            "of AMHI would be earning $72,000 per year. They can afford a shelter cost of 30% of their income, which is $21,600 per year or $1800 per month. "
-                               "We then say that any unsubsidized renter household whose shelter cost was less than $1800 per month had a below market rent.",
-                               #style={'fontFamily': 'Open Sans, sans-serif'}
-                               ),
                      dbc.Button("Export", id="export-table-11", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_8',
@@ -736,8 +741,8 @@ layout = html.Div(children=[
                                        }
                      ),
                      html.P(children=[
-                         html.I('Note: There are varying definitions of "below market"; we have calculated this figure by calculating shelter that is affordable to households earning 80% of Area Median Household Income. Across Canada, median household incomes for renters in 2020 were only slightly over half (54%) of median household income for homeowners. Therefore, it should be noted that a renter household making 80% of AMHI in 2020 should be considered relatively high-income. Read more in our methodology.'),
-                         html.A(" [link to methodology doc].", href='https://hart.ubc.ca/federal-hna-template-methodology/', target="_blank")
+                         html.I('Note: There are varying definitions of "below market"; we have calculated this figure by calculating shelter that is affordable to households earning 80% of Area Median Household Income. Across Canada, median household incomes for renters in 2020 were only slightly over half (54%) of median household income for homeowners. Therefore, it should be noted that a renter household making 80% of AMHI in 2020 should be considered relatively high-income. Read more in our '),
+                         html.A(html.I("methodology."), href='https://hart.ubc.ca/federal-hna-template-methodology/', target="_blank")
                      ]),
 
                      html.Div(id='output_8-container'),
@@ -745,16 +750,16 @@ layout = html.Div(children=[
                  ], className='pg2-output8-lgeo'
                  ),
 
-                 #11. HICC Section 5.7.1, data point 12. TODO in round 2
+                 #11. HICC Section 5.7.1, data point 12.
                  html.Div([
                      html.H4(children=html.Strong('Number of co-operative housing units')),
                      html.H5(children=html.Strong('HICC HNA Template: Section 5.7.1')),
                      html.H6(
-                         f'The following table shows the number of co-operative housing units who were registered with the Co-operative Housing Federation of Canada (CHF Canada) with an address within the census boundaries of the selected census subdivision. '),
+                         f'The following table shows the number of co-operative housing units who were registered with the Co-operative Housing Federation of Canada (CHF Canada) with an address within the selected geography. '),
                      # TABLE for output 12
                      dbc.Button("Export", id="export-table-19", className="mb-3", color="primary"),
                      dash_table.DataTable(
-                         id='output_12',  #TODO callback
+                         id='output_12',
                          merge_duplicate_headers=True,
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
@@ -765,10 +770,10 @@ layout = html.Div(children=[
                                      'textOverflow': 'ellipsis'
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
-
-                                       }
+                                       },
+                         style_table={'width': '50%', 'margin': 'left'},
                      ),
-                     html.I("*Data represents co-ops registered with the Co-operative Housing Federation of Canada (CHF Canada) extracted as of <<extract date TBD>> and may not include all co-ops."),
+                     html.I("*Data represents co-ops registered with the Co-operative Housing Federation of Canada (CHF Canada) extracted as of December 5, 2024 and may not include all co-ops."),
                      html.Br(),
                      html.Br()
                  ], className='pg2-output12-lgeo'),
@@ -777,25 +782,7 @@ layout = html.Div(children=[
                  html.Div([
                      html.H4(children=html.Strong('Housing Starts by Structural Type and Tenure')),
                      html.H5(children=html.Strong('HICC HNA Template: Section 5.9.2')),
-                     html.H6(
-                         f'The following chart shows the number of housing starts by the structural type of building, for each calendar year 2016 to 2023.'),
-                 # 4a graph stacked bar
-                 html.Div([
-
-                     # Plot
-                     html.Div([
-                         dcc.Graph(id='graph_4a',
-                                   figure=fig1,
-                                   config=config,
-
-                                   ),
-                         html.Div(id='graph_4a-container')
-                     ]),
-
-                 ], className='pg2-bar4a-1-lgeo'
-                 ),
-                 html.H6("The following table shows the number of housing starts by the structural type of building, for each calendar year 2016 to 2023. Data does not necessarily reflect or predict completed homes in any given year or span of time.",
-                         #style={'fontFamily': 'Open Sans, sans-serif'}
+                 html.H6("The following table shows the number of housing starts by structural type, for each calendar year from 2016 to 2023. Data does not necessarily reflect or predict completed homes in any given year or span of time.",
                          ),
 
                  # TABLE
@@ -816,17 +803,16 @@ layout = html.Div(children=[
                                    }
                  ),
                  html.Br(),
-                 html.H6("The following chart shows the number of housing starts by tenure for each calendar year 2016 to 2023.",
-                         #style={'fontFamily': 'Open Sans, sans-serif'}
-                         ),
-
-                 # 4b graph stacked bar
+                 html.H6(f'The following chart illustrates the above table, displaying the number of housing starts by structural type for each calendar year from 2016 to 2023.'),
+                 # 4a graph stacked bar
                  html.Div([
+
                      # Plot
                      html.Div([
-                         dcc.Graph(id='graph_4b',
+                         dcc.Graph(id='graph_4a',
                                    figure=fig1,
                                    config=config,
+
                                    ),
                          html.Div(id='graph_4a-container')
                      ]),
@@ -834,7 +820,8 @@ layout = html.Div(children=[
                  ], className='pg2-bar4a-1-lgeo'
                  ),
 
-                 html.H6("The following table shows the number of housing starts by tenure for each calendar year 2016 to 2023.",),
+                 html.Br(),
+                 html.H6("The following table shows the number of housing starts by tenure for each calendar year from 2016 to 2023.",),
 
                  # TABLE
                  dbc.Button("Export", id="export-table-6", className="mb-3", color="primary"),
@@ -854,16 +841,43 @@ layout = html.Div(children=[
                                    }
                  ),
                  html.Br(),
+
+                 html.H6("The following chart illustrates the above table, displaying the number of housing starts by tenure for each calendar year from 2016 to 2023.",
+                         ),
+
+                 # 4b graph stacked bar
+                 html.Div([
+                     # Plot
+                     html.Div([
+                         dcc.Graph(id='graph_4b',
+                                   figure=fig1,
+                                   config=config,
+                                   ),
+                         html.Div(id='graph_4a-container')
+                     ]),
+
+                 ], className='pg2-bar4a-1-lgeo'
+                 ),
+
+
                  html.Div(id='output_4ab-container')
              ], className='pg2-output4-lgeo'
              ),
+             html.Br(),
+             html.Br(),
 
 
                  # LGEO
 
                  html.Footer([
-                     html.Img(src='.\\assets\\HNA Template Footer.png', className='footer-image')
-                 ], className='footer'),
+                     html.Img(src='.\\assets\\HNA Template Footer.png', className='footer-image'),
+                 html.Br(),
+                 html.Br(),
+                 html.Br(),
+                 html.Br()
+                 ],
+
+                 className='footer'),
 
              ], className='dashboard-pg2-lgeo'
              ),
@@ -919,6 +933,7 @@ def generate_style_header_conditional(columns, text_align=None):
     style_conditional = []
     if text_align == 'right':
         for index, col in enumerate(columns):
+            print("index in function", index, "col", col)
             style_header = {'if': {'header_index': index},
                             'backgroundColor': '#002145' if index == 0 else '#39C0F7',
                             'color': '#FFFFFF' if index == 0 else '#000000',
@@ -1044,7 +1059,7 @@ def table_generator(geo, df, table_id):
 
     elif table_id == 'output_6':
         filtered_df = filtered_df[filtered_df['Metric'].isin(['Primary Rental Units', 'Secondary Rental Units'])]
-        filtered_df['Header to be deleted'] = 'Number of primary and secondary rental units in 2021'
+        filtered_df['Header to be deleted'] = 'Number of primary and secondary rental units '
 
     elif ((table_id == 'output_9') or (table_id == 'output_10a') or (table_id == 'output_10b')):
         rate_columns = filtered_df.columns[filtered_df.columns.str.endswith('Rate')]
@@ -1052,7 +1067,7 @@ def table_generator(geo, df, table_id):
         filtered_df[rate_columns] = filtered_df[rate_columns].mask(filtered_df[rate_columns] > 1, 1)
 
         if (table_id == 'output_10a') or (table_id == 'output_10b'):
-            new_header = ['Household Suppression by age of Primary household maintainer -\
+            new_header = ['Household Suppression by age of Primary Household Maintainer -\
                        following BC HNR methodology'] * (len(filtered_df.columns))
             filtered_df = filtered_df.replace('75plus', '75 and older')
         else:
@@ -1174,7 +1189,7 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
     table = table[['Characteristic', 'Data', 'Value']].sort_values(
         by=['Characteristic', 'Data'], ascending=False).replace('a ', 'an existing ', regex=True)
     style_data_conditional = generate_style_data_conditional(table)
-    style_header_conditional = generate_style_header_conditional(table, text_align='right')
+    style_header_conditional = generate_style_header_conditional(table) #, text_align='right')
 
     # Generating callback output to update table
     #print("table 1", table)
@@ -1217,7 +1232,7 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
                 'border-top': 'none',
                 'rowSpan': 2,
                 "maxWidth": "190px",
-                'textAlign': 'right'
+
 
             } for i in [1, 3]
         ]
@@ -1262,7 +1277,7 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
     table = number_formatting(table, ['Value'], 0, conditions=number_conditions).fillna(0)
 
     style_data_conditional = generate_style_data_conditional(table)
-    style_header_conditional = generate_style_header_conditional(table, text_align='right')
+    style_header_conditional = generate_style_header_conditional(table) #, text_align='right')
 
     table = table[['Characteristic', 'Data', 'Value']].sort_values(
         by=['Characteristic', 'Data'], ascending=False).replace('a ', 'an existing or under construction ', regex=True)
@@ -1300,7 +1315,7 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'right'
+                                     'textAlign': 'center'
                                  } for c in table_columns[1:]
                              ]
     new_data_style = [
@@ -1503,7 +1518,7 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
     #tickprefix="$",  # Adds % sign to each tick
         # range = [min(table['']),100]
         # fixedrange = True,
-        title='Change in Average Monthly Rent ($)'
+        title='Change in Average Monthly Rent'
     )
 
     y_vals2 = table.loc[table['Metric'] == "% Change in Avg Rent"].values.flatten().tolist()[1:]
@@ -1667,7 +1682,7 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
         plot_bgcolor='#FFFFFF',
 
         #paper_bgcolor= '#A8A8A8',
-        title=f'Vacancy Rates (2016-2023) {geo}',
+        title=f'Vacancy Rate (2016-2023) {geo}',
 
     ),
     fig1.update_xaxes(
@@ -1682,7 +1697,7 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
         tickfont=dict(size=10),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
-        title='Vacancy Rates (%)'
+        title='Vacancy Rate (%)'
     )
 
     fig2 = go.Figure()
@@ -1705,7 +1720,7 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
         modebar_color=modebar_color,
         modebar_activecolor=modebar_activecolor,
         plot_bgcolor='#FFFFFF',
-        title=f'Change in Vacancy Rates (percentage points) (2016-2023) {geo}',
+        title=f'Change in Vacancy Rate (percentage points) (2016-2023) {geo}',
     )
     fig2.update_xaxes(
         # fixedrange = True,
@@ -1719,7 +1734,7 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
 
         # range = [min(table['']),100]
         # fixedrange = True,
-        title='Change in vacancy rates (pp)'
+        title='Change in vacancy rate (pp)'
     )
 
     return fig1, fig2
@@ -1938,7 +1953,7 @@ def update_geo_figure_4a(geo, geo_c, scale, refresh):
         tickformat = ",.0f",
         # range = [min(table['']),100]
         # fixedrange = True,
-        title='Housing Starts (#)'
+        title='Housing Starts (# of units)'
     )
 
     return fig1
@@ -2026,7 +2041,7 @@ def update_geo_figure_4b(geo, geo_c, scale, refresh):
         tickformat = ",.0f",
         # range = [min(table['']),100]
         # fixedrange = True,
-        title='Housing Starts (#)'
+        title='Housing Starts (# of units)'
     )
 
     return fig1
@@ -2166,20 +2181,22 @@ def update_geo_figure_5a(geo, geo_c, scale, refresh):
     geo = get_filtered_geo(geo, geo_c, scale)
     # Generating table
     table = table_generator(geo, output_5a, 'output_5a')
+    table = table.replace("Owner", "Owner-occupied").replace("Renter", "Renter-occupied")
+    print("table 5", table)
     # Generating plot
     fig1 = go.Figure()
     y_vals1 = table['2016'].values.flatten().tolist()
     y_vals2 = table['2021'].values.flatten().tolist()
 
     fig1.add_trace(go.Bar(
-        x=["Owner", "Renter"],
+        x=["Owner-occupied", "Renter-occupied"],
         y=y_vals1,
         name= '2016',
         marker_color='#39c0f7',
         hovertemplate='2016 %{x} - <br>' + '%{y:,.0f}<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
-        x=["Owner",  "Renter"],
+        x=["Owner-occupied", "Renter-occupied"],
         y=y_vals2,
         name='2021',
         marker_color='#3eb549',
@@ -2211,7 +2228,7 @@ def update_geo_figure_5a(geo, geo_c, scale, refresh):
         tickformat = ",.0f",
         # range = [min(table['']),100]
         # fixedrange = True,
-        title='Number of Households in CHN'
+        title='Number of Households in CHN (#)'
     )
 
     return fig1
@@ -2235,14 +2252,14 @@ def update_geo_figure_5b(geo, geo_c, scale, refresh):
     
 
     fig1.add_trace(go.Bar(
-        x=["Owner", "Renter"],
+        x=["Owner-occupied", "Renter-occupied"],
         y=y_vals1 * 100,
         name= '2016',
         marker_color= '#39c0f7',
         hovertemplate='2016 %{x} - <br>' + '%{y:.1f}%<extra></extra>'
     ))
     fig1.add_trace(go.Bar(
-        x=["Owner",  "Renter"],
+        x=["Owner-occupied", "Renter-occupied"],
         y=y_vals2  * 100,
         name='2021',
         marker_color='#3eb549',
@@ -2470,7 +2487,7 @@ def update_geo_figure_7(geo, geo_c, scale, refresh):
     # Generating table
     table = table_generator(geo, output_7, 'output_7')
     table.drop_duplicates(inplace=True)
-
+    table = table.replace("Private rental market housing units", "Unsubsidized rental housing units")
     fig1 = go.Figure()
 
     fig1.add_trace(go.Pie(
@@ -2693,7 +2710,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
         # fixedrange = True,
-        title='Headship Rate',
+        title='Headship Rate (%)',
     )
 
     y_vals2 = table[table.columns[7]].tolist()
@@ -2716,7 +2733,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         modebar_color=modebar_color,
         modebar_activecolor=modebar_activecolor,
         plot_bgcolor='#FFFFFF',
-        title=f'Percentage Point Change to headship rates by age (2016 & 2021) {geo}',
+        title=f'Percentage Point Change in headship rates by age (2016 & 2021) {geo}',
         legend_title="Headship rate",
     )
     fig2.update_xaxes(
@@ -2730,7 +2747,7 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         tickfont=dict(size=10),
         # range = [min(table['']),100]
         # fixedrange = True,
-        title='Percentage point change'
+        title='Percentage point change in Headship Rate'
     )
 
     return fig1, fig2
@@ -3004,8 +3021,7 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
                           "TransgenderNonBinary", "Transgender or Non-binary HH").replace(
                           "MentalHealth",  "HH with cognitive, mental or addictions activity limitations").replace(
                           "Veteran", "Veteran HH").replace("All", "Community (all HHs)")
-    print("table[('Households in Core Housing Need (CHN) by priority population, 2021','Rate of CHN')]", table[('Households in Core Housing Need (CHN) by priority population, 2021','Rate of CHN')].values)
-    print(table[('Households in Core Housing Need (CHN) by priority population, 2021','Rate of CHN')].dtypes)
+
     find_max = table[('Households in Core Housing Need (CHN) by priority population, 2021','Rate of CHN')].values
     if 'n/a' in find_max:
         find_max = np.array([x for x in find_max if x != 'n/a'])
@@ -3071,12 +3087,13 @@ def update_output_12(geo, geo_c, scale, selected_columns):
     table = table_generator(geo, output_12, 'output_12')
     table = pd.DataFrame({'remove': 'Number of co-operative housing units', '2024': table.values[0]})
     style_data_conditional = generate_style_data_conditional(table)
-    style_header_conditional = [] #generate_style_header_conditional(table, table_id='output_12)
+    style_header_conditional = [] #generate_style_header_conditional(table)
     for index, col in enumerate(table):
         style_header = {  'if': {'header_index': index},
             'backgroundColor': '#002145' if index == 0 else '#39C0F7',
             'color': '#FFFFFF' if index == 0 else '#000000',
             'border-left': 'none',
+            'textAlign': 'right' if index == 1 else 'center'
 
            }
         style_header_conditional.append(style_header)
@@ -3095,7 +3112,7 @@ def update_output_12(geo, geo_c, scale, selected_columns):
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'right'
                                  } for c in table_columns[1:]
                              ]
 
@@ -3125,7 +3142,7 @@ def update_output_13(geo, geo_c, scale, selected_columns):
     #table = number_formatting(table, ['Number of Households in CHN'], 0)
     #table = percent_formatting(table, ['Rate of CHN'], mult_flag=1, conditions={})
 
-    #style_data_conditional = generate_style_data_conditional(table)
+    style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
     table = table[['delete_me', 'totals']]
     table = table.replace("2016to2021_AffordableUnits_Built", "Number of affordable rental units for low and very low-income households built between 2016 and 2021").replace(
@@ -3145,48 +3162,65 @@ def update_output_13(geo, geo_c, scale, selected_columns):
 
 
     table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
+
     style_cell_conditional = [
                                  {
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center',
+                                     'textAlign': 'right',
                                      "maxWidth": "100px"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'right'
                                  } for c in table_columns[1:]
                              ]
-    style_data_conditional = []
-    for i in range(len(table)):
-        row_style = {
-            'if': {'row_index': i},
-            'backgroundColor': '#39C0F7' if i == 0 else '#b0e6fc',
-            'color': '#000000',
-            'border': '1px solid #002145'
-        }
-        if i == 2:
-            row_style = {
-                'if': {'row_index': i},
-                'backgroundColor': '#E1F2FA',
-                'color': '#000000',
-                'border': '1px solid #002145'
-            }
-
-        style_data_conditional.append(row_style)
+    # style_data_conditional = []
+    # for i in range(len(table)):
+    #     row_style = {
+    #         'if': {'row_index': i},
+    #         'backgroundColor': '#39C0F7' if i == 0 else '#b0e6fc',
+    #         'color': '#000000',
+    #         'border': '1px solid #002145'
+    #     }
+    #     if i == 2:
+    #         row_style = {
+    #             'if': {'row_index': i},
+    #             'backgroundColor': '#E1F2FA',
+    #             'color': '#000000',
+    #             'border': '1px solid #39C0F7'
+    #         }
+    #
+    #     style_data_conditional.append(row_style)
 
     for index, col in enumerate(table):
-        # print('index', index, "col", col)
-        header_style = {
-            'if': {'header_index': index},
-            'backgroundColor': '#002145' if index == 0 else 'transparent',
-            'color': '#FFFFFF' if index == 0 else 'transparent',
-            'border-left': 'none',
-            'border-right': 'none'}
+        print('index', index, "col", col)
+        if index == 0:
+            header_style = {
+                'if': {'header_index': index},
+                'backgroundColor': '#002145', #if index == 0 else 'transparent',
+                'color': '#FFFFFF', #if index == 0 else 'transparent',
+                # 'border-left': 'none',
+                # 'border-right': 'none',
+                'textAlign': 'center'
 
-        style_header_conditional.append(header_style)
+            }
+            style_header_conditional.append(header_style)
+
+        if index == 1:
+            header_style = {
+                'if': {'header_index': index},
+                'backgroundColor': 'transparent',
+                'color': 'transparent',
+                'border-left': 'none',
+                'border-right': 'none',
+                'display': 'none'
+
+            }
+            style_header_conditional.append(header_style)
+
 
     # blank_row_style = [
     #     {
