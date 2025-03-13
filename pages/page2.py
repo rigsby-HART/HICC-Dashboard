@@ -125,6 +125,7 @@ layout = html.Div(children=[
                  html.Div([
                      # Title
                      # 1. HICC Section 3.1.1, data point 1. Output 1a
+
                      html.H4(children=html.Strong('Households Within 800m and 200m of Rail/Light-rail Transit Station (i.e. High Frequency Transit Stop or Station) '),
                              id='visualization1'),
                      html.H5(children='HICC HNA Template: Section 3.1.1'),
@@ -152,7 +153,6 @@ layout = html.Div(children=[
                          style_table={'width': '80%', 'margin': 'left'},
 
                      ), html.Div(id='output_1a-container'),
-                     html.Br()
                      ], className='pg2-output1a-lgeo'
                  ),
 
@@ -178,11 +178,8 @@ layout = html.Div(children=[
                                        },
                          style_table={'width': '80%', 'margin': 'left'},
 
-                     ), html.Div(id='output_1b-container'),
-                     html.Br()
+                         ), html.Div(id='output_1b-container'),
                      ], className='pg2-output1b-lgeo'
-
-
                  ),
 
                  # 2. HICC Section 3.3, data point 9 and 10. Output 9
@@ -230,12 +227,12 @@ layout = html.Div(children=[
                              ' in a given age range than there are people. This happens in a few geographies where the population is low. This is not a realistic result and can be attributed to Statistics Canada’s random rounding of cell counts.'
                              ' In these cases, the headship rate has been set to equal 100% of the age group.')
                              ),
+                     html.Br(),
                      html.Div(id='output_9-container')
                  ], className='pg2-output9-lgeo'
                  ),
 
                  # 2. HICC Section 3.3, data point 9 and 10. Table 9
-                 html.Br(),
                  html.Div([
                      html.H4(html.Strong("Estimated Household Suppression by Age of Primary Household Maintainers")),
                      html.H5("HICC HNA Template: Section 3.3"),
@@ -248,7 +245,8 @@ layout = html.Div(children=[
                      ]),
                      html.H6('The following table shows the underlying data of Headship rates in 2006 and 2021, which informs the calculation for Suppressed Households in the second table.'),
 
-                 ], className='pg2-bar9-lgeo'),
+                 ], className='pg2-bar9-lgeo'
+                 ),
 
                  # 2. HICC Section 3.3, data point 9 and 10. Output 10a
                  html.Div([
@@ -275,9 +273,10 @@ layout = html.Div(children=[
                  ),
 
                  # 2. HICC Section 3.3, data point 9 and 10. Output 10b
-                 html.Br(),
-                 html.H6("The following table calculates the estimated Household Suppression by age group in 2021."),
+
                  html.Div([
+                     html.Br(),
+                     html.H6("The following table calculates the estimated Household Suppression by age group in 2021."),
                      dbc.Button("Export", id="export-table-14", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_10b',
@@ -340,7 +339,6 @@ layout = html.Div(children=[
                      ),
 
                      html.Div(id='output_11-container'),
-                     html.Br()
                  ], className='pg2-output11-lgeo'
                  ),
 
@@ -514,7 +512,7 @@ layout = html.Div(children=[
 
 
 
-                 # output 3 charts
+                 # output 3
                  html.Div([
                  html.H4(children=html.Strong('Change in Vacancy Rates Between 2016 and 2023'),
                          id='visualization3a'),
@@ -587,7 +585,7 @@ layout = html.Div(children=[
 
 
                  html.Div(id='output_3ab-container'),
-                     html.Br()
+
                  ], className='pg2-output3a-lgeo'
                  ),
 
@@ -595,78 +593,78 @@ layout = html.Div(children=[
 
                  # HICC Section 5.6, data point 5.
                  html.Div([
-                 html.H4(children=[html.Strong('Change in Core Housing Need Over Time (2016 to 2021) by Tenure'),
-                                   ],
-                         #style={'fontFamily': 'Open Sans, sans-serif'},
-                         id='visualization5'),
-                 html.H5("HICC HNA Template: Question 5.6"),
+                     html.H4(children=[html.Strong('Change in Core Housing Need Over Time (2016 to 2021) by Tenure'),
+                                       ],
+                             #style={'fontFamily': 'Open Sans, sans-serif'},
+                             id='visualization5'),
+                     html.H5("HICC HNA Template: Question 5.6"),
 
-                 # TABLE
-                 html.H6("The following table shows the number of households in Core Housing Need (CHN) among owner-occupied and tenant-occupied households in 2016 and 2021. Please note that tenant-occupied includes both primary and secondary rental market households.",
-                         ),
-                 dbc.Button("Export", id="export-table-7", className="mb-3", color="primary"),
-                 dash_table.DataTable(
-                     id='output_5a',
-                     merge_duplicate_headers=True,
-                     style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
-                                 'textOverflow': 'ellipsis'},
-                     style_cell={'font-family': 'Bahnschrift',
-                                 'height': 'auto',
-                                 'whiteSpace': 'normal',
-                                 'overflow': 'hidden',
-                                 'textOverflow': 'ellipsis',
-                                 },
-                     style_header={'textAlign': 'center', 'fontWeight': 'bold',
-                                   },
-                     style_table={'width': '70%', 'margin': 'left'},
-                    ),
-                 html.Br(),
-                 html.H6(
-                     f"The following chart illustrates the above table, displaying the number of households in CHN among owner-occupied and tenant-occupied households in 2016 and 2021.",
-                 ),
-                 # output 5 bar charts
-                 html.Div([
-                     # Plot
-                     html.Div([
-
-                         dcc.Graph(id='graph_5a',
-                                   figure=fig1,
-                                   config=config,
-
-                                   ),
-                                   html.Div(id='graph_5a-container'),
-                         #table
-                 html.Br(),
-                 html.H6(
-                     f'The following table shows the rate of CHN among owner-occupied and tenant-occupied households in 2016 and 2021.',
-                 ),
-                 dbc.Button("Export", id="export-table-8", className="mb-3", color="primary"),
-                 dash_table.DataTable(
-                     id='output_5b',
-                     merge_duplicate_headers=True,
-                     style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
-                                 'textOverflow': 'ellipsis'},
-                     style_cell={'font-family': 'Bahnschrift',
-                                 'height': 'auto',
-                                 'whiteSpace': 'normal',
-                                 'overflow': 'hidden',
-                                 'textOverflow': 'ellipsis'
-                                 },
-                     style_header={'textAlign': 'center', 'fontWeight': 'bold',
-                                   },
-                     style_table={'width': '70%', 'margin': 'left'},
+                     # TABLE
+                     html.H6("The following table shows the number of households in Core Housing Need (CHN) among owner-occupied and tenant-occupied households in 2016 and 2021. Please note that tenant-occupied includes both primary and secondary rental market households.",
+                             ),
+                     dbc.Button("Export", id="export-table-7", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_5a',
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis',
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+                                       },
+                         style_table={'width': '70%', 'margin': 'left'},
+                        ),
+                     html.Br(),
+                     html.H6(
+                         f"The following chart illustrates the above table, displaying the number of households in CHN among owner-occupied and tenant-occupied households in 2016 and 2021.",
                      ),
-                 html.Br(),
+                     # output 5 bar charts
+                     html.Div([
+                         # Plot
+                         html.Div([
 
-                 html.H6(
-                     f'The following chart illustrates the above table, displaying the rate of CHN among owner-occupied and tenant-occupied households in 2016 and 2021.',
-                     #style={'fontFamily': 'Open Sans, sans-serif'}
-                 ),
-                 dcc.Graph(id='graph_5b',
-                           figure=fig1,
-                           config=config,
-                           ),
-                 html.Div(id='graph_5b-container')
+                             dcc.Graph(id='graph_5a',
+                                       figure=fig1,
+                                       config=config,
+
+                                       ),
+                                       html.Div(id='graph_5a-container'),
+                             #table
+                     html.Br(),
+                     html.H6(
+                         f'The following table shows the rate of CHN among owner-occupied and tenant-occupied households in 2016 and 2021.',
+                     ),
+                     dbc.Button("Export", id="export-table-8", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_5b',
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+                                       },
+                         style_table={'width': '70%', 'margin': 'left'},
+                         ),
+                     html.Br(),
+
+                     html.H6(
+                         f'The following chart illustrates the above table, displaying the rate of CHN among owner-occupied and tenant-occupied households in 2016 and 2021.',
+                         #style={'fontFamily': 'Open Sans, sans-serif'}
+                     ),
+                     dcc.Graph(id='graph_5b',
+                               figure=fig1,
+                               config=config,
+                               ),
+                     html.Div(id='graph_5b-container')
                  ]),
 
                  ], className='pg2-bar5-lgeo'
@@ -679,30 +677,30 @@ layout = html.Div(children=[
                  ),
 
                  # 9. HICC Section 5.7.1, data point 7. Output 7
-                 html.H4(html.Strong("Number of Rental Housing Units that are Subsidized or Unsubsidized")),
-                 html.H5(html.Strong("HICC HNA Template: Section 5.7.1")),
-                 # tables
-                 html.H6(
-                     "The following table shows the number of rental housing units in 2021 that were subsidized or unsubsidized, per the census. "
-                     "Subsidized housing includes rent geared to income, social housing, public housing, government-assisted housing, non-profit housing, rent supplements and housing allowances. Unsubsidized housing is in the private rental market without rent assistance."),
-                 dbc.Button("Export", id="export-table-10", className="mb-3", color="primary"),
-                 dash_table.DataTable(
-                     id='output_7',
-                     merge_duplicate_headers=True,
-                     style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
-                                 'textOverflow': 'ellipsis'},
-                     style_cell={'font-family': 'Bahnschrift',
-                                 'height': 'auto',
-                                 'whiteSpace': 'normal',
-                                 'overflow': 'hidden',
-                                 'textOverflow': 'ellipsis'
-                                 },
-                     style_header={'textAlign': 'center', 'fontWeight': 'bold',
-                                   },
-                     style_table={'width': '70%', 'margin': 'left'}
-                 ),
-                 html.Br(),
-                 html.Div([
+                 html.Div(children=[
+                     html.H4(html.Strong("Number of Rental Housing Units that are Subsidized or Unsubsidized")),
+                     html.H5(html.Strong("HICC HNA Template: Section 5.7.1")),
+                     # tables
+                     html.H6(
+                         "The following table shows the number of rental housing units in 2021 that were subsidized or unsubsidized, per the census. "
+                         "Subsidized housing includes rent geared to income, social housing, public housing, government-assisted housing, non-profit housing, rent supplements and housing allowances. Unsubsidized housing is in the private rental market without rent assistance."),
+                     dbc.Button("Export", id="export-table-10", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_7',
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+                                       },
+                         style_table={'width': '70%', 'margin': 'left'}
+                     ),
+                     html.Br(),
                      html.H6(
                          f'The following chart shows the relative size of the subsidized and unsubsidized rental units as a share of all rental units.',
                      ),
@@ -711,8 +709,8 @@ layout = html.Div(children=[
                                config=config,
                                ),
 
-                  html.Div(id='output_7-container'),
-                     html.Br()
+                    html.Div(id='output_7-container'),
+
                  ], className='pg2-output7-lgeo'
                  ),
 
@@ -862,9 +860,8 @@ layout = html.Div(children=[
 
                  html.Div(id='output_4ab-container')
              ], className='pg2-output4-lgeo'
-             ),
-             html.Br(),
-             html.Br(),
+                 ),
+
 
 
                  # LGEO
