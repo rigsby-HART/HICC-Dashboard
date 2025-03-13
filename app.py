@@ -46,7 +46,7 @@ app.clientside_callback(
                 margin: 1,
                 filename: geo + '.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 3},
+                html2canvas: { scale: 2},
                 jsPDF: { unit: 'cm', format: 'a2', orientation: 'p' },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
