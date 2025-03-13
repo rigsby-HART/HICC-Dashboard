@@ -356,6 +356,8 @@ layout = html.Div(children=[
                      dcc.Graph(id='graph_6',
                               figure=fig1,
                               config=config,
+                              # style={"font-weight": "bold"}
+
                      ),
                      html.H6('The following table shows the number of primary secondary rental units in the community.'),
 
@@ -741,7 +743,7 @@ layout = html.Div(children=[
                                        }
                      ),
                      html.P(children=[
-                         html.I('Note: There are varying definitions of "below market"; we have calculated this figure by calculating shelter that is affordable to households earning 80% of Area Median Household Income. Across Canada, median household incomes for renters in 2020 were only slightly over half (54%) of median household income for homeowners. Therefore, it should be noted that a renter household making 80% of AMHI in 2020 should be considered relatively high-income. Read more in our '),
+                         html.I('*Note: There are varying definitions of "below market"; we have calculated this figure by calculating shelter that is affordable to households earning 80% of Area Median Household Income. Across Canada, median household incomes for renters in 2020 were only slightly over half (54%) of median household income for homeowners. Therefore, it should be noted that a renter household making 80% of AMHI in 2020 should be considered relatively high-income. Read more in our '),
                          html.A(html.I("methodology."), href='https://hart.ubc.ca/federal-hna-template-methodology/', target="_blank")
                      ]),
 
@@ -2401,7 +2403,7 @@ def update_geo_figure_6(geo, geo_c, scale, refresh):
     fig1.update_layout(
                     # width = 900,
                     showlegend = True,
-                    legend=dict(font = dict(size = 12)),
+                    legend=dict(font = dict(size = 12)), #check tracegroupgap=50
                     # yaxis=dict(autorange="reversed"),
 
                     modebar_color = modebar_color,
@@ -2409,8 +2411,10 @@ def update_geo_figure_6(geo, geo_c, scale, refresh):
                     plot_bgcolor='#F8F9F9',
                     title = f'Share of Primary and Secondary Rental units {geo}',
                     legend_title = "Share",
+
                     )
-    fig1.update_traces(textfont=dict(size=16, family='Arial', color='black'))
+    fig1.update_traces(textfont=dict(size=16, family='Arial', color='black'),
+                       )
     return fig1
 
 
