@@ -3477,10 +3477,10 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
 
     find_max = table[('Households in Core Housing Need (CHN) by priority population, 2021','Rate of CHN')].values
     if 'n/a' in find_max:
-        find_max = np.array([x for x in find_max if x != 'n/a'])
+        max_value = np.array([x for x in find_max if x != 'n/a'])
 
     if not table.empty:
-        find_max = find_max.max()
+        max_value = max_value.max()
     # Generating plot
     fig = go.Figure()
     for i in table[('Households in Core Housing Need (CHN) by priority population, 2021','Priority Populations')]:
@@ -3489,7 +3489,8 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
             y=plot_df_frag[('Households in Core Housing Need (CHN) by priority population, 2021', 'Priority Populations')],
             x=plot_df_frag[('Households in Core Housing Need (CHN) by priority population, 2021', 'Rate of CHN')],
             name=i,
-            marker_color="#3EB549" if i=='Community (all HHs)' else "#39C0F7" ,
+            marker_color="#002145" if plot_df_frag[('Households in Core Housing Need (CHN) by priority population, 2021', 'Rate of CHN')].iloc[0] == max_value
+            else ("#3EB549" if i == 'Community (all HHs)' else "#39C0F7"),
             orientation='h',
             hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
         ))
@@ -3514,7 +3515,7 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
             tickformat=',.0%',
             title='% of Priority Population HH',
             tickfont=dict(size=10),
-            range= [0, math.ceil(find_max * 10) / 10],
+            range= [0, math.ceil(max_value * 10) / 10],
         )
         fig.update_yaxes(
             tickfont=dict(size=10),
