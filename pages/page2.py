@@ -503,22 +503,15 @@ layout = html.Div(children=[
                      html.H6(children=[
                          "The following tables estimates the number of rental dwellings affordable to low and very-low income households built and "
                          "lost between 2016 and 2021. We define low and very-low income rental households as those rental households whose income "
-                         "is equal to or less than 50% of the area median household income in a given year. More specifically, "
-                         "Very low income households earn less than 20% of AMHI, and Low income households earn between 20% and 50% of AMHI. "
-                         'For this calculation, "area" refers to the census subdivision.']),
+                         "is equal to or less than 50% of the area median household income in a given year. "
+                         ]),
                      
                      html.H6(
-                         "We estimate the number of affordable rental units built between 2016 and 2021 as the number of households with a low or "
-                         "very-low income in 2021 who were living in a rented dwelling that was constructed between January 1, 2016 and May 10, 2021, "
-                         "per the census. "
+                         "To understand how we calculated affordable units gained or lost, see our methodology. "
                          ),
 
-                     html.H6("We estimate the number of affordable rental units lost between 2016 and 2021 as the number of households with a low or "
-                             "very-low income in 2021 who were living in a rented dwelling that was constructed before January 1, 2016, minus the "
-                             "number of households with a low or very-low income in 2016 who were living in a rented dwelling that was constructed "
-                             "before May 10, 2016, per the census. Due to the discrepancy in available responses in the long-form census in 2016 "
-                             "compared to 2021 concerning the dwelling's period of construction, any dwellings that were built between January 1 "
-                             "and May 10, 2016, will be unavoidably double-counted in this estimate."),
+                     html.H6("In some cases, affordable units from existing stock (built prior 2016) are gained. This can be due to factors such as "
+                             "stagnating rents in aging buildings or increases to household incomes. Gains in affordable units are represented by negative values."),
 
                     html.Br(),
 
@@ -3384,7 +3377,7 @@ def update_output_11(geo, geo_c, scale, selected_columns):
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
     table = table.replace("Youth", "HH head age 18-29 (Youth-led)").replace(
-                          "SameGender", "HH with gender diverse couple or includes a transgender or non-binary person*").replace(
+                          "SameGender", "HH with gender diverse couple or includes a transgender or non-binary person**").replace(
                           "MentalHealth",  "HH with person(s) dealing with mental health and addictions activity limitation").replace(
                           "Veteran", "HH with Veteran(s)").replace(
                           "SingleMother", "Single-mother-led HH").replace(
