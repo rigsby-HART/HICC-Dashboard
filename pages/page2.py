@@ -9,6 +9,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import math
 from dash import dcc, dash_table, html, Input, Output, ctx, callback
+from dash.dash_table.Format import Format, Scheme, Group
 import dash_bootstrap_components as dbc
 from sqlalchemy import create_engine
 
@@ -35,6 +36,44 @@ output_10b = pd.read_sql_table('output_10b', engine_new.connect())
 output_11 = pd.read_sql_table('output_11', engine_new.connect())
 output_12 = pd.read_sql_table('output_12', engine_new.connect())
 output_13 = pd.read_sql_table('output_13', engine_new.connect())
+
+
+# fetch required data from HART database
+df_partners = pd.read_sql_table('partners', engine_old.connect()) #priority population table
+df_income = pd.read_sql_table('income', engine_old.connect())
+updated_csd = pd.read_sql_table('csd_hh_projections', engine_old.connect()).rename(columns=
+                                                                                   {'Geo_Code': 'ALT_GEO_CODE_EN'})  # CSD level projections
+updated_csd['ALT_GEO_CODE_EN'] = updated_csd['ALT_GEO_CODE_EN'].fillna(-1).astype(int).astype(str)
+
+
+# Fetching province, CD and CSD ids from geography names
+df_income['CD_ids'] = df_income['Geography'].str.findall(r"\b\d{4}\b")
+df_income['P_ids'] = df_income['Geography'].str.findall(r"\b\d{2}\b")
+df_income['CSD_ids'] = df_income['Geography'].str.findall(r"\b\d{7}\b")
+
+# Concatenating all ids for easy join
+df_income['ALT_GEO_CODE_EN'] = df_income['CD_ids'].fillna('') + \
+                                        df_income['CSD_ids'].fillna('') + \
+                                        df_income['P_ids'].fillna('')
+
+df_income['ALT_GEO_CODE_EN'] = df_income['ALT_GEO_CODE_EN'].str[0]
+df_income['ALT_GEO_CODE_EN'] = df_income['ALT_GEO_CODE_EN'].fillna(0).astype(str)
+df_income.loc[df_income['Geography'].str.contains('Canada', case=False, na=False), 'ALT_GEO_CODE_EN'] = '1'
+
+
+income_category = df_income.drop(['Geography'], axis=1)
+income_category = income_category.rename(columns = {'Formatted Name': 'Geography'})
+
+joined_df = income_category.merge(df_partners, how='left', on='Geography')
+
+# variables for table 14a, 14b
+x_base =['Very Low Income', 'Low Income', 'Moderate Income', 
+    'Median Income', 'High Income']
+x_columns = ['Rent 20% of AMHI', 'Rent 50% of AMHI', 'Rent 80% of AMHI',
+             'Rent 120% of AMHI', 'Rent 120% of AMHI']
+amhi_range = ['20% or under of AMHI', '21% to 50% of AMHI', '51% to 80% of AMHI', 
+    '81% to 120% of AMHI', '121% and more of AMHI']
+income_ct = [x + f" ({a})" for x, a in zip(x_base, amhi_range)]
 
 
 
@@ -300,8 +339,81 @@ layout = html.Div(children=[
                  ], className='pg2-output10b-lgeo'
                  ),
 
-                 # 3. HICC Section 4.1, data point 11.
-                     html.Div([
+                # 3. HICC Section 3.6, data point 14a. Income Cats and Affordable Shelter costs
+                html.Div([
+                     html.H4(children=html.Strong(f'HICC HNA Template: Section 3.6')),
+                     html.H5(children=html.Strong('Income Categories and Affordable Shelter Costs, 2021'),
+                             id='visualization14a'),
+                     html.H6("Income categories are determined by their relationship with each geography's Area Median Household Income (AMHI). "
+                             " The following table shows the range of household incomes and affordable housing costs that make up each income category, in 2020 dollar values. "
+                             "It also shows what the portion of total households that fall within each category."),
+
+                     dbc.Button("Export", id="export-table-20", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_14a',
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+
+                                       }
+                     ),
+                     html.Div(id='output_14a-container'),
+                     html.Br()
+                 ], className='pg2-output14a-lgeo'
+                 ), 
+
+
+                # 3. HICC Section 3.6, data point 14b. Affordable Housing deficit
+                html.Div([
+                     html.H5(children=html.Strong('Percentage of Households in Core Housing Need, by Income Category and HH Size, 2021'),
+                             id='visualization14b'),
+                     html.H6("The following chart examines those households in CHN and shows their relative distribution by household size "
+                             "(i.e. the number of individuals in a given household for each household income category. "
+                             "When there is no bar for an income category, it means that either there are no households in CHN "
+                             "within an income category, or that there are too few households to report."),
+
+                     dcc.Graph(id='graph_14b',
+                               figure=fig2,
+                               config=config,
+                               ),
+
+                     html.Br(),
+
+                     html.H5(children=html.Strong('2021 Affordable Housing Deficit')),
+                     html.H6("The following table shows the total number of households in CHN by household size and income category, "
+                             "which may be considered as the existing deficit of housing options in the community."),
+
+                     dbc.Button("Export", id="export-table-21", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_14b',
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+
+                                       }
+                     ),
+                     html.Div(id='output_14b-container'),
+                     html.Br()
+                 ], className='pg2-output14b-lgeo'
+                 ), 
+
+
+                # 3. HICC Section 4.1, data point 11.
+                html.Div([
                      html.H4(children=html.Strong(f'Priority groups by Core Housing Need status')),
                      html.H5(children=html.Strong('HICC HNA Template: Section 4.1'),
                              id='visualization6'),
@@ -389,15 +501,32 @@ layout = html.Div(children=[
                      html.H5(children=html.Strong('HICC HNA Template: Section 5.3'),
                              id='visualization6'),
                      html.H6(children=[
-                         "The following table estimates the number of rental dwellings affordable to low and very-low income households built and lost between 2016 and 2021. We define low and very-low income rental households as those rental households whose income is equal to or less than 50% of the area median household income in a given year.",
-                         html.Br(),
-                         "To understand how we calculated affordable units gained or lost, see our methodology. "
-                         ]),
+                         "The following tables estimates the number of rental dwellings affordable to low and very-low income households built and "
+                         "lost between 2016 and 2021. We define low and very-low income rental households as those rental households whose income "
+                         "is equal to or less than 50% of the area median household income in a given year. More specifically, "
+                         "Very low income households earn less than 20% of AMHI, and Low income households earn between 20% and 50% of AMHI. "
+                         'For this calculation, "area" refers to the census subdivision.']),
+                     
+                     html.H6(
+                         "We estimate the number of affordable rental units built between 2016 and 2021 as the number of households with a low or "
+                         "very-low income in 2021 who were living in a rented dwelling that was constructed between January 1, 2016 and May 10, 2021, "
+                         "per the census. "
+                         ),
 
-                     html.H6("In some cases, affordable units from existing stock (built prior 2016) are gained. This can be due to factors such as stagnating rents in aging buildings or increases to household incomes. Gains in affordable units are represented by negative values."),
+                     html.H6("We estimate the number of affordable rental units lost between 2016 and 2021 as the number of households with a low or "
+                             "very-low income in 2021 who were living in a rented dwelling that was constructed before January 1, 2016, minus the "
+                             "number of households with a low or very-low income in 2016 who were living in a rented dwelling that was constructed "
+                             "before May 10, 2016, per the census. Due to the discrepancy in available responses in the long-form census in 2016 "
+                             "compared to 2021 concerning the dwelling's period of construction, any dwellings that were built between January 1 "
+                             "and May 10, 2016, will be unavoidably double-counted in this estimate."),
+
+                    html.Br(),
+
+                    html.H6("Dwellings affordable to Very low-income & Low-income households:", style={"textDecoration": "underline"}),
+
                      dbc.Button("Export", id="export-table-18", className="mb-3", color="primary"),
                      dash_table.DataTable(
-                         id='output_13',
+                         id='output_13a',
                          merge_duplicate_headers=True,
                          style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
                                      'textOverflow': 'ellipsis'},
@@ -420,9 +549,69 @@ layout = html.Div(children=[
                      ),
                      html.I(children=[
                          "*Note: Due to differences in available responses used in the long-form census between 2016 and 2021 regarding period of construction, ",
-                         'this estimate of units lost will double-count any units built between January 1, 2016 and May 10, 2016 (i.e. census day 2016). For more information, please consult our ',
-                          html.A("methodology.", href="https://hart.ubc.ca/federal-hna-template-methodology/", target="_blank")
+                         'this estimate of units lost will double-count any units built between January 1, 2016 and May 10, 2016 (i.e. census day 2016). '
+                         'The 2016 long-form census uses the period "2011-2016" as an option for '
+                         "the dwelling's period of construction while "
+                         'the 2021 long-form census uses the periods "2011-2015," "2016-2020," and "2021" as the possible options.',
+                          
                         ]),
+                    
+                    html.Br(),
+                    html.Br(),
+                    
+                    html.H6("Dwellings affordable to Very low-income households:", style={"textDecoration": "underline"}),
+                    dbc.Button("Export", id="export-table-23", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_13b',
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis',
+                                     'textAlign': 'right'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+                                       },
+                         css=[{
+                                'selector': 'tr:nth-child(2)',
+                                'rule':'''
+                                        display: None;
+                                '''
+                              }],
+
+                     ),
+
+                    html.Br(),
+                    html.Br(),
+                    
+                    html.H6("Dwellings affordable to Low-income households:", style={"textDecoration": "underline"}),
+                    dbc.Button("Export", id="export-table-24", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_13c',
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis',
+                                     'textAlign': 'right'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+                                       },
+                         css=[{
+                                'selector': 'tr:nth-child(2)',
+                                'rule':'''
+                                        display: None;
+                                '''
+                              }],
+
+                     ),
+
                      html.Div(id='output_13-container'),
                      html.Br()
                  ], className='pg2-output13-lgeo'
@@ -865,6 +1054,39 @@ layout = html.Div(children=[
                  html.Div(id='output_4ab-container')
              ], className='pg2-output4-lgeo'
              ),
+
+             # 3. HICC Section 6.1.1, data point 16.
+                html.Div([
+                     html.H4(children=html.Strong(f'2031 Projected Households by Household Size and Income Category')),
+                     html.H5(children=html.Strong('HICC HNA Template: Section 6.1.1'),
+                             id='visualization16'),
+                     html.H6("The following table shows the projected total number of households in 2031 by household size and income category."),
+
+                     dbc.Button("Export", id="export-table-22", className="mb-3", color="primary"),
+                     dash_table.DataTable(
+                         id='output_16',
+                         merge_duplicate_headers=True,
+                         style_data={'whiteSpace': 'normal', 'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'},
+                         style_cell={'font-family': 'Bahnschrift',
+                                     'height': 'auto',
+                                     'whiteSpace': 'normal',
+                                     'overflow': 'hidden',
+                                     'textOverflow': 'ellipsis'
+                                     },
+                         style_header={'textAlign': 'center', 'fontWeight': 'bold',
+
+                                       }
+                     ),
+                     html.Br(),
+                     html.H6("In this table, we project forward using the line of best fit to the combined income and household size category. "
+                     "Since the combined categories have unique values, and are also subject to Statistics Canada’s random rounding, "
+                     "the resulting Totals here may not match the Totals when projecting households by either income or household size alone."),
+                     html.Div(id='output_16-container'),
+                     html.Br()
+                 ], className='pg2-output16-lgeo'
+                 ), 
+
              html.Br(),
              html.Br(),
 
@@ -935,7 +1157,6 @@ def generate_style_header_conditional(columns, text_align=None):
     style_conditional = []
     if text_align == 'right':
         for index, col in enumerate(columns):
-            print("index in function", index, "col", col)
             style_header = {'if': {'header_index': index},
                             'backgroundColor': '#002145' if index == 0 else '#39C0F7',
                             'color': '#FFFFFF' if index == 0 else '#000000',
@@ -1032,10 +1253,185 @@ def get_filtered_geo(geo, geo_c, scale, selected_columns=None):
         return geo
 
 
+# Defining different table generator for HART tables because the code structure is different
+def table_14a_generator(geo, df):
+    geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
+
+    filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
+
+    shelter_range = [i+'.1' for i in amhi_range]
+
+    # pdb.set_trace()
+    portion_of_total_hh = []
+    for x in x_base:
+        portion_of_total_hh.append(round(filtered_df[f'Percent of Total HH that are in {x}'].tolist()[0] * 100, 2))
+
+    amhi_list = []
+    for a in amhi_range:
+        amhi_list.append(filtered_df[a].tolist()[0])
+
+    shelter_list = []
+    for s in shelter_range:
+        shelter_list.append(filtered_df[s].tolist()[0])
+
+    filtered_df_geo_index = filtered_df.set_index('Geography')
+    median_income = '${:0,.0f}'.format(float(filtered_df_geo_index.at[geo, 'Median income of household ($)']))
+    median_rent = '${:0,.0f}'.format(float(filtered_df_geo_index.at[geo, 'Rent AMHI']))
+
+    table = pd.DataFrame({'Income Category': income_ct, '% of Total HHs ': portion_of_total_hh, 'Annual HH Income ': amhi_list, 'Affordable Shelter Cost ': shelter_list})
+    table['% of Total HHs '] = table['% of Total HHs '].astype(str) + '%'
+
+    return table, median_income, median_rent
+
+
+# Defining different table generator for HART tables because the code structure is different
+def table_14b_generator(geo, df):
+    geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
+
+    filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
+
+    table = pd.DataFrame({'Income Category': income_ct})
+
+    h_hold_value = []
+    hh_p_num_list = [1, 2, 3, 4, '5 or more']
+    income_lv_list = ['20% or under', '21% to 50%', '51% to 80%', '81% to 120%', '121% or more']
+
+    for h in hh_p_num_list:
+        h_hold_value = []
+        if h == 1:
+            h2 = '1 person'
+        elif h == '5 or more':
+            h2 = '5 or more persons household'
+        else:
+            h2 = f'{str(h)} persons'
+        for i in income_lv_list:
+            if i == '20% or under':
+                column = f'Total - Private households by presence of at least one or of the combined activity limitations (Q11a, Q11b, Q11c or Q11f or combined)-{h2}-Households with income {i} of area median household income (AMHI)-Households in core housing need'
+                h_hold_value.append(filtered_df[column].tolist()[0])
+
+            else:
+                column = f'Total - Private households by presence of at least one or of the combined activity limitations (Q11a, Q11b, Q11c or Q11f or combined)-{h2}-Households with income {i} of AMHI-Households in core housing need'
+                h_hold_value.append(filtered_df[column].tolist()[0])
+        
+        if h == 1:        
+            table[f'{h} Person HH'] = h_hold_value
+        elif h == '5 or more':
+            table[f'5+ Person HH'] = h_hold_value
+        else:
+            table[f'{h} Person HH'] = h_hold_value
+
+    x_list = []
+
+    i = 0
+    for b, c in zip(x_base, x_columns):
+        if i < 4:
+            x = b + " ($" + str(int(float(filtered_df[c].tolist()[0]))) + ")"
+            x_list.append(x)
+        else:
+            x = b + " (>$" + str(int(float(filtered_df[c].tolist()[0]))) + ")"
+            x_list.append(x)
+        i += 1
+
+    table['Income Category (Max. affordable shelter cost)'] = x_list
+    table['Income Category'] = ['Very low Income', 'Low Income', 'Moderate Income',
+                                'Median Income', 'High Income']
+
+    table['Total'] = table.sum(axis = 1)
+    row_total_csd = table.sum(axis=0)
+    row_total_csd[0] = 'Total'
+    table.loc[len(table['Income Category']), :] = row_total_csd
+    table.loc[5, 'Income Category (Max. affordable shelter cost)'] = 'Total'
+
+    return table
+
+# Defining different table generator for HART tables because the code structure is different
+def graph_14b_generator(geo, df):
+    geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
+
+    filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
+
+    x_list = []
+
+    i = 0
+    for c in x_columns:
+        value = filtered_df[c].tolist()[0]
+        if i < 4:
+            x = " ($" + value + ") "
+            x_list.append(x)
+        else:
+            x = " (>$" + value + ") "
+            x_list.append(x)
+        i += 1
+
+    income_lv_list = ['20% or under', '21% to 50%', '51% to 80%', '81% to 120%', '121% or more']
+    x_list = [sub.replace('$$', '$') for sub in x_list]
+    x_list = [sub.replace('.0', '') for sub in x_list]
+
+    h_hold_value = []
+    hh_p_num_list_full = []
+    hh_column_name = ['1 Person', '2 Person', '3 Person', '4 Person', '5+ Person']
+    hh_p_num_list = [1, 2, 3, 4, '5 or more']
+
+    for h, hc in zip(hh_p_num_list, hh_column_name):
+        for i in income_lv_list:
+            column = f'Per HH with income {i} of AMHI in core housing need that are {h} person HH'
+            h_hold_value.append(filtered_df[column].tolist()[0])
+            hh_p_num_list_full.append(hc)
+
+    plot_df = pd.DataFrame({'HH_Size': hh_p_num_list_full, 'Income_Category': x_list * 5, 'Percent': h_hold_value})
+    
+    return plot_df
+
+
+# Defining different table generator for HART tables because the code structure is different
+def table_16_generator(geo, df):
+    geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
+    filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
+
+    # variables for table 16
+    ahmi_projected_range = ['20% or under of area median household income (AMHI)',
+                    '21% to 50% of AMHI', '51% to 80% of AMHI', '81% to 120% of AMHI',
+                    '121% or over of AMHI']
+    pp_list = ['1pp', '2pp', '3pp', '4pp', '5pp']
+
+    # income_l = []
+    # pp_l = []
+    result_csd_l = []
+    # pdb.set_trace()
+
+    for i in ahmi_projected_range:
+        for p in pp_list:
+            col_format = f'2031 Projected {p} HH with income {i}'
+            # income_l.append(i)
+            # pp_l.append(p)
+            result_csd_l.append(filtered_df[col_format].tolist()[0])
+
+    income_l = [level for level in ['Very Low Income', 'Low Income', 'Moderate Income', 'Median Income', 'High Income'] for _ in range(5)]
+    hh_l = ['1 Person', '2 Person', '3 Person', '4 Person', '5+ Person']
+
+    table = pd.DataFrame({'Income Category': income_l, 'HH Category': hh_l * 5, 'value': np.round(result_csd_l, 0)})
+    table = table.fillna(0)
+    table = table.replace([np.inf, -np.inf], 0)
+
+    table_csd = table.pivot_table(values='value', index=['Income Category'], columns=['HH Category'], sort=False)
+    table_csd = table_csd.reset_index()
+
+    row_total_csd = table_csd.sum(axis=0)
+    row_total_csd[0] = 'Total'
+    table_csd.loc[5, :] = row_total_csd
+
+    table_csd.columns = ['HH Income Category', '1 Person', '2 Person', '3 Person', '4 Person', '5+ Person']
+    table_csd['Total '] = table_csd.sum(axis=1)
+
+    return table_csd
+
+
+
 def table_generator(geo, df, table_id):
     geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
 
     filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
+    # pdb.set_trace()
     # print(filtered_df)
     if table_id == 'output_2b':
         filtered_df = filtered_df[filtered_df['Metric'].isin(['% Change in Avg Rent', 'Change in Avg Rent'])].rename(
@@ -1056,7 +1452,7 @@ def table_generator(geo, df, table_id):
                      '2023': '2022 to 2023'}
         )  #.rename('Change in Vacancy Rate', 'Change in Vacancy Rate (percentage points')
         filtered_df.drop('2016', axis=1, inplace=True)
-        for col in filtered_df.columns[6:]:
+        for col in filtered_df.columns[4:]:
             filtered_df[col] = filtered_df[col] * 100
 
     elif table_id == 'output_6':
@@ -1093,22 +1489,56 @@ def table_generator(geo, df, table_id):
         #print("output_4a HEADER", filtered_df.columns[0])
 
     elif table_id == 'output_8':
-        filtered_df = filtered_df.melt(id_vars=filtered_df.columns[:5], var_name="Metric", value_name="2021")
+        filtered_df = filtered_df.melt(id_vars=filtered_df.columns[:3], var_name="Metric", value_name="2021")
 
     elif table_id == 'output_11':
-        # melt into format where marginal group is in the rows and colums = 'Number of Households in CHN' 'Rate of CHN'
-        melted_rates = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars= ["Veteran_Rate of CHN", "Youth_Rate of CHN", "SameGender_Rate of CHN", "TransgenderNonBinary_Rate of CHN", "MentalHealth_Rate of CHN", "All_Rate of CHN"], var_name= 'Priority Populations', value_name="Rate of CHN" )
+        # melt into format where marginal group is in the rows and colums = 'Number of  Households in CHN' 'Rate of CHN'
+        melted_rates = filtered_df.melt(id_vars=filtered_df.columns[:3], 
+                                        value_vars= ["Youth_Rate of CHN", "SameGender_Rate of CHN", 
+                                                      "MentalHealth_Rate of CHN", "Veteran_Rate of CHN", 
+                                                      "SingleMother_Rate of CHN", "WomenLed_Rate of CHN",
+                                                      "Indigenous_Rate of CHN", "VisibleMinority_Rate of CHN",
+                                                      "BlackLed_Rate of CHN", "NewImmigrant_Rate of CHN",
+                                                      "Refugee_Rate of CHN", "Under25_Rate of CHN",
+                                                      "Between65_Rate of CHN", "Over85_Rate of CHN",
+                                                      "PhysicalLimitation_Rate of CHN", "MentalLimitation_Rate of CHN",
+                                                      "Transgender_Rate of CHN", "All_Rate of CHN"], 
+                                                      var_name= 'Priority Populations', value_name="Rate of CHN" )
         melted_rates_col = melted_rates['Rate of CHN']
-        melted_hh_in_CHN = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars=['2021_CHN_Veteran', '2021_CHN_Youth' , '2021_CHN_SameGender', '2021_CHN_TransgenderNonBinary', '2021_CHN_MentalHealth', '2021_CHN_All'], var_name='Priority Populations', value_name="Number of Households in CHN" )
+
+        melted_hh_in_CHN = filtered_df.melt(id_vars=filtered_df.columns[:3], 
+                                            value_vars=['2021_CHN_Youth' , '2021_CHN_SameGender', 
+                                                        '2021_CHN_MentalHealth', '2021_CHN_Veteran', 
+                                                        '2021_CHN_SingleMother', '2021_CHN_WomenLed',
+                                                        '2021_CHN_Indigenous', '2021_CHN_VisibleMinority',
+                                                        '2021_CHN_BlackLed', '2021_CHN_NewImmigrant',
+                                                        '2021_CHN_Refugee', '2021_CHN_Under25',
+                                                        '2021_CHN_Between65', '2021_CHN_Over85',
+                                                        '2021_CHN_PhysicalLimitation', '2021_CHN_MentalLimitation',
+                                                        '2021_CHN_Transgender', '2021_CHN_All'], 
+                                                        var_name='Priority Populations', value_name="Number of Households in CHN" )
         filtered_df = pd.concat([melted_hh_in_CHN, melted_rates_col ], axis=1)
         priority_pops = [x.split("_")[2] for x in filtered_df['Priority Populations'].values]
         filtered_df['Priority Populations'] = priority_pops
+
+
         new_header = ['Households in Core Housing Need (CHN) by priority population, 2021'] * (len(filtered_df.columns))
         filtered_df.columns = pd.MultiIndex.from_tuples(zip(new_header, filtered_df.columns))
 
-    elif table_id == 'output_13':
+    elif ((table_id == 'output_13a') or (table_id == 'output_13b') or (table_id == 'output_13c')):
         # melt into longer format
-        melted_counts = filtered_df.melt(id_vars=filtered_df.columns[:5], value_vars=['2016to2021_AffordableUnits_Built', '2016to2021_AffordableUnits_Lost', 'Net Change in Affordable Units'], var_name= 'delete_me', value_name = 'totals')
+        if table_id == 'output_13b':
+            melted_counts = filtered_df.melt(id_vars=filtered_df.columns[:3], 
+                                            value_vars=['2016to2021_AffordableUnits_Built_VeryLowOnly', '2016to2021_AffordableUnits_Lost_VeryLowOnly', 
+                                                        'Net Change in Affordable Units Very Low'], var_name= 'delete_me', value_name = 'totals')
+        elif table_id == 'output_13c':
+            melted_counts = filtered_df.melt(id_vars=filtered_df.columns[:3], 
+                                            value_vars=['2016to2021_AffordableUnits_Built_LowOnly', '2016to2021_AffordableUnits_Lost_LowOnly', 
+                                                        'Net Change in Affordable Units Low'], var_name= 'delete_me', value_name = 'totals')
+        else:
+            melted_counts = filtered_df.melt(id_vars=filtered_df.columns[:3], 
+                                            value_vars=['2016to2021_AffordableUnits_Built', '2016to2021_AffordableUnits_Lost', 
+                                                        'Net Change in Affordable Units'], var_name= 'delete_me', value_name = 'totals')
         filtered_df = melted_counts
     else:
 
@@ -1117,7 +1547,7 @@ def table_generator(geo, df, table_id):
     if (table_id == 'output_1a') or (table_id == 'output_1b'):
         table = filtered_df.iloc[:, 2:]
     else:
-        table = filtered_df.iloc[:, 5:]
+        table = filtered_df.iloc[:, 3:]
 
 
     for index, row in table.iterrows():
@@ -1367,6 +1797,7 @@ def update_output_2a(geo, geo_c, scale, selected_columns):
 
     # Generating table
     table = table_generator(geo, output_2, 'output_2a')
+    # pdb.set_trace()
     table = table[table['Metric'] == 'Avg Monthly Rent']
     
     table.drop_duplicates(inplace=True)
@@ -2184,7 +2615,6 @@ def update_geo_figure_5a(geo, geo_c, scale, refresh):
     # Generating table
     table = table_generator(geo, output_5a, 'output_5a')
     table = table.replace("Owner", "Owner-occupied").replace("Renter", "Renter-occupied")
-    print("table 5", table)
     # Generating plot
     fig1 = go.Figure()
     y_vals1 = table['2016'].values.flatten().tolist()
@@ -2954,10 +3384,23 @@ def update_output_11(geo, geo_c, scale, selected_columns):
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
     table = table.replace("Youth", "HH head age 18-29 (Youth-led)").replace(
-                          "SameGender", "HH with Same-gender couple**").replace(
-                          "TransgenderNonBinary", "HH with Transgender or non-binary couple**").replace(
-                          "MentalHealth",  "HH with Person(s) dealing with mental health and addictions issues").replace(
-                          "Veteran", "HH with Veteran(s)").replace("All", "All HHs")
+                          "SameGender", "HH with gender diverse couple or includes a transgender or non-binary person*").replace(
+                          "MentalHealth",  "HH with person(s) dealing with mental health and addictions activity limitation").replace(
+                          "Veteran", "HH with Veteran(s)").replace(
+                          "SingleMother", "Single-mother-led HH").replace(
+                          "WomenLed", "Women-led HH").replace(
+                          "Indigenous", "Indigenous HH").replace(
+                          "VisibleMinority", "Visible minority HH").replace(
+                          "BlackLed", "Black-led HH").replace(
+                          "NewImmigrant", "New migrant-led HH").replace(
+                          "Refugee", "Refugee-claimant-led HH").replace(
+                          "Under25", "HH head under 25").replace(
+                          "Between65", "HH head over 65").replace(
+                          "Over85", "HH head over 85").replace(
+                          "PhysicalLimitation", "HH with person(s) physical activity limitation").replace(
+                          "MentalLimitation", "HH with person(s) dealing with cognitive, mental or addictions activity limitation").replace(
+                          "Transgender", "HH with Transgender or Non-binary person(s)").replace(
+                          "All", "Community (all HHs)")
 
     table_columns = [{"name": [geo, col1, col2], "id": f"{col1}_{col2}"} for col1, col2 in table.columns]
     table_data = [
@@ -3022,14 +3465,29 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
     #table.loc[table['Priority Populations'].isin(['SameGender', 'TransgenderNonBinary']), 'Rate of CHN'] = 'n/a'
     table = table.replace("Youth", "Youth-led HH").replace(
                           "SameGender", "Same-gender HH").replace(
-                          "TransgenderNonBinary", "Transgender or Non-binary HH").replace(
-                          "MentalHealth",  "HH with cognitive, mental or addictions activity limitations").replace(
-                          "Veteran", "Veteran HH").replace("All", "Community (all HHs)")
+                          "MentalHealth",  "HH with mental health or addictions activity limitations").replace(
+                          "Veteran", "Veteran HH").replace(
+                          "SingleMother", "Single mother-led HH").replace(
+                          "WomenLed", "Women-led HH").replace(
+                          "Indigenous", "Indigenous HH").replace(
+                          "VisibleMinority", "Visible minority HH").replace(
+                          "BlackLed", "Black-led HH").replace(
+                          "NewImmigrant", "New migrant-led HH").replace(
+                          "Refugee", "Refugee claimant-led HH").replace(
+                          "Under25", "HH head under 25").replace(
+                          "Between65", "HH head over 65").replace(
+                          "Over85", "HH head over 85").replace(
+                          "PhysicalLimitation", "HH with physical activity limitation").replace(
+                          "MentalLimitation", "HH with cognitive, mental or addictions activity limitation").replace(
+                          "Transgender", "Transgender or Non-binary HH").replace(
+                          "All", "Community (all HHs)")
 
     find_max = table[('Households in Core Housing Need (CHN) by priority population, 2021','Rate of CHN')].values
     if 'n/a' in find_max:
         find_max = np.array([x for x in find_max if x != 'n/a'])
-    find_max = find_max.max()
+
+    if not table.empty:
+        find_max = find_max.max()
     # Generating plot
     fig = go.Figure()
     for i in table[('Households in Core Housing Need (CHN) by priority population, 2021','Priority Populations')]:
@@ -3056,18 +3514,20 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
         title=f'Percentage of Households in Core Housing Need, by Priority Population, 2021<br>{geo}',
         legend_title="Priority Group",
     )
-    fig.update_xaxes(
-        fixedrange=True,
-        tickformat=',.0%',
-        title='% of Priority Population HH',
-        tickfont=dict(size=10),
-        range= [0, math.ceil(find_max * 10) / 10],
-    )
-    fig.update_yaxes(
-        tickfont=dict(size=10),
-        fixedrange=True,
-        title='Priority Group'
-    )
+
+    if not table.empty:
+        fig.update_xaxes(
+            fixedrange=True,
+            tickformat=',.0%',
+            title='% of Priority Population HH',
+            tickfont=dict(size=10),
+            range= [0, math.ceil(find_max * 10) / 10],
+        )
+        fig.update_yaxes(
+            tickfont=dict(size=10),
+            fixedrange=True,
+            title='Priority Group'
+        )
 
     return fig
 
@@ -3089,7 +3549,11 @@ def update_output_12(geo, geo_c, scale, selected_columns):
 
     # Generating table
     table = table_generator(geo, output_12, 'output_12')
-    table = pd.DataFrame({'remove': 'Number of co-operative housing units', '2024': table.values[0]})
+    
+    if not table.empty:
+        table = pd.DataFrame({'remove': 'Number of co-operative housing units', '2024': table.values[0]})
+    table = number_formatting(table, list(table.columns[1:]), 0)
+
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = [] #generate_style_header_conditional(table)
     for index, col in enumerate(table):
@@ -3124,35 +3588,37 @@ def update_output_12(geo, geo_c, scale, selected_columns):
         'records'), style_data_conditional, style_cell_conditional, style_header_conditional
 
 
-# output_13
+# output_13a
 @callback(
-    Output('output_13', 'columns'),
-    Output('output_13', 'data'),
-    Output('output_13', 'style_data_conditional'),
-    Output('output_13', 'style_cell_conditional'),
-    Output('output_13', 'style_header_conditional'),
+    Output('output_13a', 'columns'),
+    Output('output_13a', 'data'),
+    Output('output_13a', 'style_data_conditional'),
+    Output('output_13a', 'style_cell_conditional'),
+    Output('output_13a', 'style_header_conditional'),
     Input('main-area', 'data'),
     Input('comparison-area', 'data'),
     Input('area-scale-store', 'data'),
-    Input('output_13', 'selected_columns'),
+    Input('output_13a', 'selected_columns'),
 )
-def update_output_13(geo, geo_c, scale, selected_columns):
+def update_output_13a(geo, geo_c, scale, selected_columns):
     geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
 
     # Generating table
-    table = table_generator(geo, output_13, 'output_13')
-    #multiply by 100 and % formatting needed
+    table = table_generator(geo, output_13, 'output_13a')
+    
     table.drop_duplicates(inplace=True)
-    #table = number_formatting(table, ['Number of Households in CHN'], 0)
-    #table = percent_formatting(table, ['Rate of CHN'], mult_flag=1, conditions={})
+    
 
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table)
     table = table[['delete_me', 'totals']]
+
     table = table.replace("2016to2021_AffordableUnits_Built", "Number of affordable rental units for low and very low-income households built between 2016 and 2021").replace(
-                          "2016to2021_AffordableUnits_Lost", "Number of affordable rental units for low and very low-income households lost   between 2016 and 2021*").replace(
-                          "Net Change in Affordable Units", "Net change in affordable rental units for low and very-low income households between 2016 and 2021")
+                        "2016to2021_AffordableUnits_Lost", "Number of affordable rental units for low and very low-income households lost between 2016 and 2021*").replace(
+                        "Net Change in Affordable Units", "Net change in affordable rental units for low and very-low income households between 2016 and 2021")
+        
     table = table.rename(columns={'delete_me': '', 'totals': ' '})
+    table = number_formatting(table, list(table.columns[1:]), 0)
     # style_header_conditional = []
     # for index, col in enumerate(table):
     #     print('index', index, "col", col)
@@ -3200,7 +3666,6 @@ def update_output_13(geo, geo_c, scale, selected_columns):
     #     style_data_conditional.append(row_style)
 
     for index, col in enumerate(table):
-        print('index', index, "col", col)
         if index == 0:
             header_style = {
                 'if': {'header_index': index},
@@ -3252,3 +3717,409 @@ def update_output_13(geo, geo_c, scale, selected_columns):
 
     return table_columns, table.to_dict(
         'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+
+# output_13b
+@callback(
+    Output('output_13b', 'columns'),
+    Output('output_13b', 'data'),
+    Output('output_13b', 'style_data_conditional'),
+    Output('output_13b', 'style_cell_conditional'),
+    Output('output_13b', 'style_header_conditional'),
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('output_13b', 'selected_columns'),
+)
+def update_output_13b(geo, geo_c, scale, selected_columns):
+    geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
+
+    # Generating table
+    table = table_generator(geo, output_13, 'output_13b')
+    
+    table.drop_duplicates(inplace=True)
+    
+
+    style_data_conditional = generate_style_data_conditional(table)
+    style_header_conditional = generate_style_header_conditional(table)
+    table = table[['delete_me', 'totals']]
+
+    table = table.replace("2016to2021_AffordableUnits_Built_VeryLowOnly", "Number of affordable rental units for very low-income households built between 2016 and 2021").replace(
+                            "2016to2021_AffordableUnits_Lost_VeryLowOnly", "Number of affordable rental units for very low-income households lost between 2016 and 2021*").replace(
+                            "Net Change in Affordable Units Very Low", "Net change in affordable rental units for very-low income households between 2016 and 2021")
+    
+        
+    table = table.rename(columns={'delete_me': '', 'totals': ' '})
+    table = number_formatting(table, list(table.columns[1:]), 0)
+
+    table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
+
+    style_cell_conditional = [
+                                 {
+                                     'if': {'column_id': table_columns[0]['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'right',
+                                     "maxWidth": "100px"
+                                 }
+                             ] + [
+                                 {
+                                     'if': {'column_id': c['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'right'
+                                 } for c in table_columns[1:]
+                             ]
+
+    for index, col in enumerate(table):
+        if index == 0:
+            header_style = {
+                'if': {'header_index': index},
+                'backgroundColor': '#002145', #if index == 0 else 'transparent',
+                'color': '#FFFFFF', #if index == 0 else 'transparent',
+                'textAlign': 'center'
+
+            }
+            style_header_conditional.append(header_style)
+
+        if index == 1:
+            header_style = {
+                'if': {'header_index': index},
+                'backgroundColor': 'transparent',
+                'color': 'transparent',
+                'border-left': 'none',
+                'border-right': 'none',
+                'display': 'none'
+
+            }
+            style_header_conditional.append(header_style)
+
+
+    return table_columns, table.to_dict(
+        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+
+
+# output_13c
+@callback(
+    Output('output_13c', 'columns'),
+    Output('output_13c', 'data'),
+    Output('output_13c', 'style_data_conditional'),
+    Output('output_13c', 'style_cell_conditional'),
+    Output('output_13c', 'style_header_conditional'),
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('output_13c', 'selected_columns'),
+)
+def update_output_13c(geo, geo_c, scale, selected_columns):
+    geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
+
+    # Generating table
+    table = table_generator(geo, output_13, 'output_13c')
+    
+    table.drop_duplicates(inplace=True)
+    
+
+    style_data_conditional = generate_style_data_conditional(table)
+    style_header_conditional = generate_style_header_conditional(table)
+    table = table[['delete_me', 'totals']]
+
+    table = table.replace("2016to2021_AffordableUnits_Built_LowOnly", "Number of affordable rental units for low-income households built between 2016 and 2021").replace(
+                        "2016to2021_AffordableUnits_Lost_LowOnly", "Number of affordable rental units for low-income households lost between 2016 and 2021*").replace(
+                        "Net Change in Affordable Units Low", "Net change in affordable rental units for low income households between 2016 and 2021")
+    
+        
+    table = table.rename(columns={'delete_me': '', 'totals': ' '})
+    table = number_formatting(table, list(table.columns[1:]), 0)
+
+    table_columns = [{"name": [geo, col], "id": col} for col in table.columns]
+
+    style_cell_conditional = [
+                                 {
+                                     'if': {'column_id': table_columns[0]['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'right',
+                                     "maxWidth": "100px"
+                                 }
+                             ] + [
+                                 {
+                                     'if': {'column_id': c['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'right'
+                                 } for c in table_columns[1:]
+                             ]
+
+    for index, col in enumerate(table):
+        if index == 0:
+            header_style = {
+                'if': {'header_index': index},
+                'backgroundColor': '#002145', 
+                'color': '#FFFFFF', 
+                'textAlign': 'center'
+
+            }
+            style_header_conditional.append(header_style)
+
+        if index == 1:
+            header_style = {
+                'if': {'header_index': index},
+                'backgroundColor': 'transparent',
+                'color': 'transparent',
+                'border-left': 'none',
+                'border-right': 'none',
+                'display': 'none'
+
+            }
+            style_header_conditional.append(header_style)
+
+
+    return table_columns, table.to_dict(
+        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+
+
+# output_14a
+@callback(
+    Output('output_14a', 'columns'),
+    Output('output_14a', 'data'),
+    Output('output_14a', 'style_data_conditional'),
+    Output('output_14a', 'style_cell_conditional'),
+    Output('output_14a', 'style_header_conditional'),
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('output_14a', 'selected_columns'),
+)
+def update_output_14a(geo, geo_c, scale, selected_columns):
+    geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
+
+    # Generating table
+    table, median_income, median_rent = table_14a_generator(geo, joined_df)
+    style_data_conditional = generate_style_data_conditional(table)
+    style_header_conditional = generate_style_header_conditional(table, text_align='right')
+
+
+    table_columns = []
+
+    median_row = ['Area Median Household Income', "", median_income, median_rent]
+    for i,j  in zip(list(table.columns), median_row):
+        table_columns.append({"name": [geo, i, j], "id": i})
+
+    style_cell_conditional = [
+                                 {
+                                     'if': {'column_id': table_columns[0]['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'right',
+                                     "maxWidth": "100px"
+                                 }
+                             ] + [
+                                 {
+                                     'if': {'column_id': c['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'right'
+                                 } for c in table_columns[1:]
+                             ]+ [
+                                {
+                                    'if': {'column_id': 'Affordable Shelter Cost (2020 CAD$)'},
+                                    'maxWidth': "120px",
+
+                                }
+                            ]+ [
+                                {
+                                    'if': {'column_id': 'Income Category'},
+                                    'maxWidth': "120px",
+                                    'width' : '35%'
+
+                                }
+                            ]
+    
+    return table_columns, table.to_dict(
+        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+
+# Figure 14b
+@callback(
+    Output('graph_14b', 'figure'),
+
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('graph_14b', 'selected_columns'),
+)
+def update_geo_figure_14b(geo, geo_c, scale, refresh):
+    geo = get_filtered_geo(geo, geo_c, scale, refresh)
+
+    # Generating table
+    plot_df = graph_14b_generator(geo, joined_df)
+
+    fig_14b = go.Figure()
+
+    for h, c in zip(plot_df['HH_Size'].unique(), hh_colors):
+        plot_df_frag = plot_df.loc[plot_df['HH_Size'] == h, :]
+        fig_14b.add_trace(go.Bar(
+                            y = plot_df_frag['Income_Category'],
+                            x = plot_df_frag['Percent'],
+                            name = h,
+                            marker_color = c,
+                            orientation = 'h', 
+                            hovertemplate= '%{y}, ' + f'HH Size: {h} - ' + '%{x: .2%}<extra></extra>',
+                        ))
+        
+    # Plot layout settings    
+    fig_14b.update_layout(
+                    legend_traceorder = 'normal', 
+                    width = 900,
+                    legend=dict(font = dict(size = 9)), 
+                    modebar_color = modebar_color, 
+                    modebar_activecolor = modebar_activecolor, 
+                    yaxis=dict(autorange="reversed"), 
+                    barmode='stack', 
+                    plot_bgcolor='#F8F9F9', 
+                    title = f'Percentage of Households in Core Housing Need, by Income Category and HH Size, 2021<br>{geo}',
+                    legend_title = "Household Size"
+                    )
+    
+    fig_14b.update_yaxes(
+                        tickfont = dict(size = 10), 
+                        fixedrange = True, 
+                        title = 'Income Categories<br>(Max. affordable shelter costs)'
+                        )
+    fig_14b.update_xaxes(
+                    fixedrange = True, 
+                    tickformat =  ',.0%', 
+                    title = '% of HH', 
+                    tickfont = dict(size = 10)
+                    )
+
+    return fig_14b
+
+# output_14b
+@callback(
+    Output('output_14b', 'columns'),
+    Output('output_14b', 'data'),
+    Output('output_14b', 'style_data_conditional'),
+    Output('output_14b', 'style_cell_conditional'),
+    Output('output_14b', 'style_header_conditional'),
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('output_14b', 'selected_columns'),
+)
+def update_output_14b(geo, geo_c, scale, selected_columns):
+    geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
+
+    # Generating table
+    table = table_14b_generator(geo, joined_df)
+    # pdb.set_trace()
+    table = table[['Income Category (Max. affordable shelter cost)', '1 Person HH', '2 Person HH',
+                        '3 Person HH', '4 Person HH', '5+ Person HH', 'Total']]
+    
+    style_data_conditional = generate_style_data_conditional(table)
+    style_header_conditional = generate_style_header_conditional(table, text_align='right')
+    
+    table_columns = []
+    for i in table.columns:
+        table_columns.append({"name": [geo, i],
+                                "id": i, 
+                                "type": 'numeric', 
+                                "format": Format(
+                                                group=Group.yes,
+                                                scheme=Scheme.fixed,
+                                                precision=0
+                                                )})
+    
+    style_cell_conditional = [
+                                 {
+                                     'if': {'column_id': table_columns[0]['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'right',
+                                     "maxWidth": "100px"
+                                 }
+                             ] + [
+                                 {
+                                     'if': {'column_id': c['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'right'
+                                 } for c in table_columns[1:]
+                             ]+ [
+                                {
+                                    'if': {'column_id': 'Income Category (Max. affordable shelter cost)'},
+                                    'maxWidth': "120px",
+
+                                }
+                            ]
+
+    new_data_style = [
+        {
+            'if': {'row_index': len(table) - 1, 'column_id': j['id']},
+            'backgroundColor': '#39C0F7',
+            'color': '#000000',
+            'fontWeight': 'bold'
+
+        } for j in table_columns
+
+    ]
+    style_data_conditional.extend(new_data_style)
+
+    
+    return table_columns, table.to_dict(
+        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+
+# output_16
+@callback(
+    Output('output_16', 'columns'),
+    Output('output_16', 'data'),
+    Output('output_16', 'style_data_conditional'),
+    Output('output_16', 'style_cell_conditional'),
+    Output('output_16', 'style_header_conditional'),
+    Input('main-area', 'data'),
+    Input('comparison-area', 'data'),
+    Input('area-scale-store', 'data'),
+    Input('output_16', 'selected_columns'),
+)
+def update_output_16(geo, geo_c, scale, selected_columns):
+    geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
+
+    # Generating table
+    table = table_16_generator(geo, updated_csd)
+
+    style_data_conditional = generate_style_data_conditional(table)
+    style_header_conditional = generate_style_header_conditional(table, text_align='right')
+    
+    table_columns = []
+    for i in table.columns:
+        table_columns.append({"name": [geo, i],
+                                "id": i, 
+                                "type": 'numeric', 
+                                "format": Format(
+                                                group=Group.yes,
+                                                scheme=Scheme.fixed,
+                                                precision=0
+                                                )})
+    
+    style_cell_conditional = [
+                                 {
+                                     'if': {'column_id': table_columns[0]['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'right',
+                                     "maxWidth": "100px"
+                                 }
+                             ] + [
+                                 {
+                                     'if': {'column_id': c['id']},
+                                     'backgroundColor': columns_color_fill[1],
+                                     'textAlign': 'right'
+                                 } for c in table_columns[1:]
+                             ]
+
+    new_data_style = [
+        {
+            'if': {'row_index': len(table) - 1, 'column_id': j['id']},
+            'backgroundColor': '#39C0F7',
+            'color': '#000000',
+            'fontWeight': 'bold'
+
+        } for j in table_columns
+
+    ]
+    style_data_conditional.extend(new_data_style)
+
+    
+    return table_columns, table.to_dict(
+        'records'), style_data_conditional, style_cell_conditional, style_header_conditional
+

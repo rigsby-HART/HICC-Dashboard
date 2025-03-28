@@ -454,6 +454,11 @@ def update_map(clickData, btn1, value, btn2, btn3, btn4, btn5):
     clicked_code = mapped_geo_code.loc[mapped_geo_code['Geography'] == value, :]['Geo_Code'].tolist()[0]
     clicked_code = str(clicked_code)
 
+    # Added this line on 17-03-2025, to not break the map if Canada is selected from dropdown menu
+    if len(clicked_code) == 1 and 'all-geo-dropdown-parent' == ctx.triggered_id:
+        fig_m = province_map(value, True)
+        return fig_m, value
+
     # When users click 'View Province' button or select a province on dropbox menu
 
     if (
@@ -559,11 +564,11 @@ def update_map(clickData, btn1, value, btn2, btn3, btn4, btn5):
 
             return fig_msr, subregion_name
 
-    # default map (show provinces) before clicking anything on the map
-
+    
+    # default map (show Ottawa) before clicking anything on the map
     else:
 
-        # fig_m = province_map(value, True)
+        # fig_m = province_map(value, True) # default map (show provinces) before clicking anything on the map
         fig_m = subregion_map(value, True, 'N')
 
         return fig_m, default_value

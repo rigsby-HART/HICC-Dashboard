@@ -10,14 +10,15 @@ from PrepareTables import PrepareTables
 
 
 class DBUploader:
-    def __init__(self, master_data_filepath, transit_filepath, db_path):
+    def __init__(self, master_data_filepath, transit_filepath, priority_pop_filepath, db_path):
         self.master_data_filepath = master_data_filepath
         self.transit_filepath = transit_filepath
+        self.priority_pop_filepath = priority_pop_filepath
 
         self.db_path = db_path
         
         self.engine = create_engine('sqlite:///' + self.db_path)
-        self.pt = PrepareTables(master_data_filepath, transit_filepath)
+        self.pt = PrepareTables(master_data_filepath, transit_filepath, priority_pop_filepath)
         self.db_base = declarative_base()
         self.upload_tables()
         self.Session = sessionmaker(bind=self.engine)
@@ -284,7 +285,7 @@ class DBUploader:
         # Dynamically add columns based on the DataFrame columns
         if flag == 0:
             for col in df.columns:
-                if col in {'Geography', 'GEO_TYPE_ABBR_EN', f'{variable_column}', 'ALT_GEO_CODE_EN', 'PR_CODE_EN'}:
+                if col in {'Geography', f'{variable_column}', 'ALT_GEO_CODE_EN'}:
                     setattr(cls, col, Column(String))
                 else:
                     setattr(cls, col, Column(Float)) 

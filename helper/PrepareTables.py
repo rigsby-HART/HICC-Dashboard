@@ -8,21 +8,36 @@ import numpy as np
 
 
 throughputs_path = '..\\throughputs\\'
-required_cols = ['Geography', 'GEO_TYPE_ABBR_EN', 'ALT_GEO_CODE_EN', 'PR_CODE_EN']
+required_cols = ['Geography', 'ALT_GEO_CODE_EN']
 test_geo = ["Bay Roberts", "Conception Bay South", "St. John's", "Corner Brook", "Sylvan Lake"]
 
 class PrepareTables:
-    def __init__(self, master_data_filepath, transit_filepath):
+    def __init__(self, master_data_filepath, transit_filepath, priority_pop_filepath):
         self.master_data_filepath = master_data_filepath
         self.transit_filepath = transit_filepath
+        self.priority_pop_filepath = priority_pop_filepath
 
         print('Reading Input master data...')
-        self.master_data = PrepareTables.clean_input_data(
-            pd.read_excel(self.master_data_filepath, sheet_name='Master - All geos', header=[1]))
+        self.master_csd_data = PrepareTables.clean_input_data(
+            pd.read_excel(self.master_data_filepath, sheet_name='Master - CSDs', header=[1]))
         
-        print('Input master data loaded...')
+        self.master_pro_cd_data = PrepareTables.clean_input_data(
+            pd.read_excel(self.master_data_filepath, sheet_name='Master - PTs&CDs')).rename(
+                columns={'PTNAME': 'Geography', 'PTUID': 'ALT_GEO_CODE_EN',
+                         '<removed1>': '2021_ExaminedForCHN_TransgenderNonBinary', 
+                         '<removed2>': '2021_CHN_TransgenderNonBinary',
+                         '2021_ExaminedForCHN_GenderDiversity': '2021_ExaminedForCHN_SameGender',
+                         '2021_CHN_GenderDiversity': '2021_CHN_SameGender'}).drop(
+                             ['CMHC-PTNAME (2016-2021)', 'CMHC-PTNAME-Alt (2022-2023)',
+                              'CMHC PT Lookup', 'CMHC PT Lookup-Alt'], axis=1)
+        
+        print('Preparing Province, CDs and CSDs data...')
+        self.master_data = pd.concat([self.master_csd_data, self.master_pro_cd_data], axis=0)
 
         self.transit_data = pd.read_csv(self.transit_filepath)
+        self.priority_pop = pd.read_excel(self.priority_pop_filepath).rename(columns={'All_ids': 'ALT_GEO_CODE_EN',
+                                                                                    'Geography': 'Full_Geography',
+                                                                                    'Formatted_Geography': 'Geography'})
 
 
     def prepare_output_1(self, future=''):
@@ -62,7 +77,6 @@ class PrepareTables:
         
         output_2_columns = required_cols + [col for col in self.master_data.columns if col.startswith('Avg_Rent_')]
         assert len(output_2_columns) != len(required_cols), "The required columns are not fetched"
-
         
         try:
             output_2 = self.master_data[output_2_columns]
@@ -563,9 +577,7 @@ class PrepareTables:
             # Create a new sum row with the calculated sum and the municipality
             sum_row = pd.DataFrame([{
                 'Geography': group_id[0],
-                'GEO_TYPE_ABBR_EN': group_id[1],
-                'ALT_GEO_CODE_EN': group_id[2],
-                'PR_CODE_EN': group_id[3],
+                'ALT_GEO_CODE_EN': group_id[1],
                 'Age': 'Total',
                 "2021 Suppressed Households (only if Potential Households > Actual Households)": total_sum
             }])
@@ -577,7 +589,7 @@ class PrepareTables:
 
         # Concatenate the sum rows with the original DataFrame
         sum_rows_df = pd.concat(sum_rows, ignore_index=True)
-        sum_rows_df.set_index(['Geography', 'GEO_TYPE_ABBR_EN', 'ALT_GEO_CODE_EN', 'PR_CODE_EN', 'Age'], inplace=True)
+        sum_rows_df.set_index(['Geography', 'ALT_GEO_CODE_EN', 'Age'], inplace=True)
         output_10b_with_summary = pd.concat([output_10b, sum_rows_df])
         # assert original len + len of unique muni == concatenated df
         assert(sum_rows_df.shape[0] +  output_10b.shape[0] == output_10b_with_summary.shape[0])
@@ -597,9 +609,10 @@ class PrepareTables:
         print("Preparing Output 11...")
         CHN_cols = [col for col in self.master_data.columns if 'ExaminedForCHN' in col] + [col
                                             for col in self.master_data.columns if '2021_CHN' in col]
-        # do we want CHN_Renter_2021 or ExaminedForCHNRenter as the divisor?
+        
         CHN_renter_owner_cols = [col for col in self.master_data.columns if 'Renter' in col or 'Owner' in col]
-        clean_CHN_cols = list(set(CHN_cols) - set(CHN_renter_owner_cols)) #['2021_CHN_Youth', '2021_CHN_TransgenderNonBinary', '2021_CHN_Veteran', '2021_ExaminedForCHN_MentalHealth', '2021_ExaminedForCHN_Veteran', '2021_ExaminedForCHN_SameGender', '2021_CHN_MentalHealth', '2021_CHN_SameGender', '2021_ExaminedForCHN_Youth', '2021_ExaminedForCHN_TransgenderNonBinary']  # #
+        clean_CHN_cols = list(set(CHN_cols) - set(CHN_renter_owner_cols))
+        
 
         output_11_columns = required_cols + clean_CHN_cols
 
@@ -609,26 +622,34 @@ class PrepareTables:
             # output_11 = output_11[output_11['Geography'].isin(test_geo)]
         except KeyError:
             print('Some columns from output 11 were not found')
-        output_11 = self.master_data[output_11_columns]
 
-        output_11.iloc[:,3:] = output_11.iloc[:,3:].apply(pd.to_numeric,  errors='coerce')
-        priority_groups = ['Youth', 'SameGender', 'TransgenderNonBinary', 'MentalHealth', 'Veteran', 'All']
+        output_11[clean_CHN_cols] = output_11[clean_CHN_cols].apply(pd.to_numeric, errors='coerce')
+        # priority_groups = ['Youth', 'SameGender', 'TransgenderNonBinary', 'MentalHealth', 'Veteran', 'All']
+        priority_groups = ['Youth', 'SameGender', 'MentalHealth', 'Veteran'] # removed transgender and all fetching from HART
+
         for group in priority_groups:
             subset = output_11[[col for col in output_11.columns if group in col]]
             # Calculate Rate of Core Housing Need (CHN) for each of the five following priority groups as the Number of Households
             # in CHN divided by the Number of Households Examined for CHN  ie. 2021_CHN_Youth / '2021_ExaminedForCHN_Youth'
-            output_11[f'{group}_Rate of CHN'] = subset[f'2021_CHN_{group}'].div(subset[f'2021_ExaminedForCHN_{group}'])
+            output_11[f'{group}_Rate of CHN'] = subset[f'2021_CHN_{group}'].div(subset[f'2021_ExaminedForCHN_{group}'].replace(0, np.nan))
             #REMOVE WHEN WE GET THE REAL DATA TODO
-            if group == 'SameGender' or group == 'TransgenderNonBinary':
+            # if group == 'SameGender' or group == 'TransgenderNonBinary':
+            if group == 'SameGender':
                 output_11[f'{group}_Rate of CHN'] = np.nan
                 output_11[f'2021_CHN_{group}'] = np.nan
 
+        print('Adding additional priority population from HART...')
+        final_output_11 = output_11.merge(self.priority_pop, how='left', on='ALT_GEO_CODE_EN').rename(
+            columns={'Geography_y': 'Geography_HART', 'Geography_x': 'Geography'}
+        ).drop(['Full_Geography', 'Geography_HART'], axis=1)
+
+
 
         # export to csv
-        output_11.to_csv(os.path.join(throughputs_path, "Output11.csv"))
+        final_output_11.to_csv(os.path.join(throughputs_path, "Output11.csv"))
         print("Output 11 Successfully created...")
 
-        return output_11
+        return final_output_11
 
     def prepare_output_12(self):
         # number of co-ops who registered with the co-op housing federation
@@ -641,7 +662,7 @@ class PrepareTables:
             #output_12 = output_12[output_12['Geography'].isin(test_geo)]
         except KeyError:
             print('Some columns from output 12 were not found')
-        output_12 = self.master_data[output_12_columns]
+        
         # export to csv
         output_12.to_csv(os.path.join(throughputs_path, "Output12.csv"))
         print("Output 12 Successfully created...")
@@ -652,7 +673,8 @@ class PrepareTables:
     def prepare_output_13(self):
         # affordable units and # lost
         print("Preparing Output 13...")
-        output_13_columns = required_cols + ["2016to2021_AffordableUnits_Built", "2016to2021_AffordableUnits_Lost"]
+        affordable_unit_cols = [col for col in self.master_data.columns if '2016to2021_AffordableUnits' in col]
+        output_13_columns = required_cols +  affordable_unit_cols
 
         assert len(output_13_columns) != len(required_cols), "The required columns are not fetched"
         try:
@@ -660,8 +682,15 @@ class PrepareTables:
             # output_13 = output_13[output_13['Geography'].isin(test_geo)]
         except KeyError:
             print('Some columns from output 13 were not found')
-        output_13 = self.master_data[output_13_columns]
-        output_13['Net Change in Affordable Units'] = output_13["2016to2021_AffordableUnits_Built"] - output_13['2016to2021_AffordableUnits_Lost']
+        
+        output_13[affordable_unit_cols] = output_13[affordable_unit_cols].apply(pd.to_numeric, errors='coerce')
+
+        output_13['Net Change in Affordable Units Very Low'] = output_13["2016to2021_AffordableUnits_Built_VeryLowOnly"] 
+        - output_13['2016to2021_AffordableUnits_Lost_VeryLowOnly']
+        output_13['Net Change in Affordable Units Low'] = output_13["2016to2021_AffordableUnits_Built_LowOnly"] 
+        - output_13['2016to2021_AffordableUnits_Lost_LowOnly']
+        output_13['Net Change in Affordable Units'] = output_13["2016to2021_AffordableUnits_Built"] 
+        - output_13['2016to2021_AffordableUnits_Lost']
         # export to csv
         output_13.to_csv(os.path.join(throughputs_path, "Output13.csv"))
         print("Output 13 Successfully created...")
@@ -670,6 +699,7 @@ class PrepareTables:
 
     @staticmethod
     def clean_input_data(input_data):
+        input_data = input_data.replace('--', np.nan).replace('**', np.nan).replace('#N/A', np.nan)
         input_data.columns = input_data.columns.str.replace(
             '20162', '2016', regex=False).str.replace('Unsibsidized', 'Unsubsidized', regex=False)
         #make new column for 2021 75+ bin
