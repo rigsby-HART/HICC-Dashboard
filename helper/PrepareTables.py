@@ -685,12 +685,13 @@ class PrepareTables:
         
         output_13[affordable_unit_cols] = output_13[affordable_unit_cols].apply(pd.to_numeric, errors='coerce')
 
-        output_13['Net Change in Affordable Units Very Low'] = output_13["2016to2021_AffordableUnits_Built_VeryLowOnly"] 
-        - output_13['2016to2021_AffordableUnits_Lost_VeryLowOnly']
-        output_13['Net Change in Affordable Units Low'] = output_13["2016to2021_AffordableUnits_Built_LowOnly"] 
-        - output_13['2016to2021_AffordableUnits_Lost_LowOnly']
-        output_13['Net Change in Affordable Units'] = output_13["2016to2021_AffordableUnits_Built"] 
-        - output_13['2016to2021_AffordableUnits_Lost']
+        # pdb.set_trace()
+        output_13['Net Change in Affordable Units Very Low'] = output_13["2016to2021_AffordableUnits_Built_VeryLowOnly"
+                                                                         ] - output_13['2016to2021_AffordableUnits_Lost_VeryLowOnly']
+        output_13['Net Change in Affordable Units Low'] = output_13["2016to2021_AffordableUnits_Built_LowOnly"
+                                                                    ] - output_13['2016to2021_AffordableUnits_Lost_LowOnly']
+        output_13['Net Change in Affordable Units'] = output_13["2016to2021_AffordableUnits_Built"
+                                                                ] - output_13['2016to2021_AffordableUnits_Lost']
         # export to csv
         output_13.to_csv(os.path.join(throughputs_path, "Output13.csv"))
         print("Output 13 Successfully created...")
