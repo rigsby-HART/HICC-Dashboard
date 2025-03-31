@@ -34,7 +34,21 @@ class PrepareTables:
         print('Preparing Province, CDs and CSDs data...')
         self.master_data = pd.concat([self.master_csd_data, self.master_pro_cd_data], axis=0)
 
-        self.transit_data = pd.read_csv(self.transit_filepath)
+        self.cd_transit_data = pd.read_excel(self.transit_filepath, sheet_name='CDs')
+        self.cd_transit_data['ALT_GEO_CODE_EN'] = self.cd_transit_data['DGUID_12'].str[-4:]
+
+        self.pt_transit_data = pd.read_excel(self.transit_filepath, sheet_name='PTs').rename(columns=
+                                                                                             {'PRUID_12': 'ALT_GEO_CODE_EN'})
+
+        self.csd_transit_data = pd.read_excel(self.transit_filepath, sheet_name='CSDs').rename(columns=
+                                                                                               {'CSDUID': 'ALT_GEO_CODE_EN'})
+        self.cma_transit_data = pd.read_excel(self.transit_filepath, sheet_name='CMAs')
+        self.cma_transit_data['ALT_GEO_CODE_EN'] = self.cma_transit_data['DGUID_12'].str[-3:]
+
+        self.transit_data = pd.concat([self.cd_transit_data, self.csd_transit_data,
+                                       self.cma_transit_data, self.pt_transit_data], axis=0)
+        self.transit_data['ALT_GEO_CODE_EN'] = self.transit_data['ALT_GEO_CODE_EN'].astype(str)
+
         self.priority_pop = pd.read_excel(self.priority_pop_filepath).rename(columns={'All_ids': 'ALT_GEO_CODE_EN',
                                                                                     'Geography': 'Full_Geography',
                                                                                     'Formatted_Geography': 'Geography'})
@@ -43,13 +57,12 @@ class PrepareTables:
     def prepare_output_1(self, future=''):
         print("Preparing Output 1")
 
-        output_1_columns = ['CSDUID', f'200m{future}Transit_Access', 
+        output_1_columns = ['ALT_GEO_CODE_EN', f'200m{future}Transit_Access', 
                              f'200m{future}Transit_PerHHAccess', 
                             f'800m{future}Transit_Access', f'800m{future}Transit_PerHHAccess']
         
         try:
-            output_1 = self.transit_data[output_1_columns].rename(columns={
-                'CSDUID': 'ALT_GEO_CODE_EN'})
+            output_1 = self.transit_data[output_1_columns]
 
         except KeyError:
             print('Some columns from output 1 were not found')
@@ -632,18 +645,11 @@ class PrepareTables:
             # Calculate Rate of Core Housing Need (CHN) for each of the five following priority groups as the Number of Households
             # in CHN divided by the Number of Households Examined for CHN  ie. 2021_CHN_Youth / '2021_ExaminedForCHN_Youth'
             output_11[f'{group}_Rate of CHN'] = subset[f'2021_CHN_{group}'].div(subset[f'2021_ExaminedForCHN_{group}'].replace(0, np.nan))
-            #REMOVE WHEN WE GET THE REAL DATA TODO
-            # if group == 'SameGender' or group == 'TransgenderNonBinary':
-            if group == 'SameGender':
-                output_11[f'{group}_Rate of CHN'] = np.nan
-                output_11[f'2021_CHN_{group}'] = np.nan
 
         print('Adding additional priority population from HART...')
         final_output_11 = output_11.merge(self.priority_pop, how='left', on='ALT_GEO_CODE_EN').rename(
             columns={'Geography_y': 'Geography_HART', 'Geography_x': 'Geography'}
         ).drop(['Full_Geography', 'Geography_HART'], axis=1)
-
-
 
         # export to csv
         final_output_11.to_csv(os.path.join(throughputs_path, "Output11.csv"))

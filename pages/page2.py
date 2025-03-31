@@ -497,7 +497,7 @@ layout = html.Div(children=[
 
                  # output 13
                  html.Div([
-                     html.H4(children=html.Strong(f'The number of affordable rental units for low and very low-income households built, and the number lost ')),
+                     html.H4(children=html.Strong(f'Number of Affordable Rental Units for Low and Very Low-Income Households Built, and the Number Lost')),
                      html.H5(children=html.Strong('HICC HNA Template: Section 5.3'),
                              id='visualization6'),
                      html.H6(children=[
@@ -1639,16 +1639,15 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "100px"   #"maxWidth": "50px"  #CHANGE THIS to update the column width according to doc
+                                     "maxWidth": "100px"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'centre'
+                                     'textAlign': 'center'
                                  } for c in table_columns[1:]
                              ]
-    
     new_data_style = [
             {
                 'if': {'row_index': i, 'column_id': 'Characteristic'},
@@ -1657,6 +1656,7 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
                 'border-top': 'none',
                 'rowSpan': 2,
                 "maxWidth": "190px",
+                # 'textAlign': 'right'
 
 
             } for i in [1, 3]
@@ -1751,7 +1751,7 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
                 'border-top': 'none',
                 'rowSpan': 2,
                 "maxWidth": "190px",
-                'textAlign': 'right'
+                # 'textAlign': 'right'
 
 
             } for i in [1, 3]
@@ -3480,7 +3480,7 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
         max_value = np.array([x for x in find_max if x != 'n/a'])
 
     if not table.empty:
-        max_value = max_value.max()
+        max_value = find_max.max()
     # Generating plot
     fig = go.Figure()
     for i in table[('Households in Core Housing Need (CHN) by priority population, 2021','Priority Populations')]:
