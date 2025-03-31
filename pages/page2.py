@@ -1614,7 +1614,7 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
     table = table[['Characteristic', 'Data', 'Value']].sort_values(
         by=['Characteristic', 'Data'], ascending=False).replace('a ', 'an existing ', regex=True)
     style_data_conditional = generate_style_data_conditional(table)
-    style_header_conditional = generate_style_header_conditional(table) #, text_align='right')
+    style_header_conditional = generate_style_header_conditional(table, text_align='right')
 
     # Generating callback output to update table
     #print("table 1", table)
@@ -1645,7 +1645,7 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'right'
                                  } for c in table_columns[1:]
                              ]
     new_data_style = [
@@ -1656,7 +1656,7 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
                 'border-top': 'none',
                 'rowSpan': 2,
                 "maxWidth": "190px",
-                # 'textAlign': 'right'
+                'textAlign': 'right'
 
 
             } for i in [1, 3]
@@ -1702,7 +1702,7 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
     table = number_formatting(table, ['Value'], 0, conditions=number_conditions).fillna(0)
 
     style_data_conditional = generate_style_data_conditional(table)
-    style_header_conditional = generate_style_header_conditional(table) #, text_align='right')
+    style_header_conditional = generate_style_header_conditional(table, text_align='right')
 
     table = table[['Characteristic', 'Data', 'Value']].sort_values(
         by=['Characteristic', 'Data'], ascending=False).replace('a ', 'an existing or under construction ', regex=True)
@@ -1740,7 +1740,7 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'right'
                                  } for c in table_columns[1:]
                              ]
     new_data_style = [
@@ -1751,7 +1751,7 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
                 'border-top': 'none',
                 'rowSpan': 2,
                 "maxWidth": "190px",
-                # 'textAlign': 'right'
+                'textAlign': 'right'
 
 
             } for i in [1, 3]
