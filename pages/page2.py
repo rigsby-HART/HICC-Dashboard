@@ -1662,14 +1662,14 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "300px"
+                                     "width": "65%"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "500px"
+                                     
                                  } for c in table_columns[1:]
                              ]
     new_data_style = [
@@ -1763,14 +1763,14 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "500px"
+                                     "width": "65%"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "400px"
+                                     
                                  } for c in table_columns[1:]
                              ]
     new_data_style = [
