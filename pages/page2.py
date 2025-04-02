@@ -128,7 +128,7 @@ opacity_value = 0.2
 
 # Default location in the map
 
-default_value = 'Ottawa CV (CSD, ON)'
+default_value = 'Canada'
 
 layout = html.Div(children=[
 
@@ -188,7 +188,7 @@ layout = html.Div(children=[
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
                                        },
-                         style_table={'width': '80%', 'margin': 'left'},
+                         style_table={'width': '70%', 'margin': 'left'},
 
                      ), html.Div(id='output_1a-container'),
                      html.Br()
@@ -215,7 +215,7 @@ layout = html.Div(children=[
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
                                        },
-                         style_table={'width': '80%', 'margin': 'left'},
+                         style_table={'width': '70%', 'margin': 'left'},
 
                      ), html.Div(id='output_1b-container'),
                      html.Br()
@@ -305,7 +305,8 @@ layout = html.Div(children=[
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
-                                       }
+                                       },
+                         style_table={'width': '80%', 'margin': 'left'},
                      ),
                      html.P(html.I('''*Note: The data for small geographies may show there to be more primary household maintainers in a given age range than there are people. This happens in a few geographies where the population is low. This is not a realistic result and can be attributed to Statistics Canada’s random rounding of cell counts. In these cases, the headship rate has been set to equal 100% of that age group.''')),
                      html.P(html.I('**Note: The “75 and older” category is used here because data from 2006 uses these categories and does not have an “85 and older” category. For 2021, this category represents the sum of categories “75 to 84” and “85 and older”.')),
@@ -331,7 +332,8 @@ layout = html.Div(children=[
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
-                                       }
+                                       },
+                         style_table={'width': '80%', 'margin': 'left'},
                      ),
                      html.P(html.I('*Note: The “75 and older” category is used here because data from 2006 uses these categories and does not have an “85 and older” category. For 2021, this category represents the sum of categories “75 to 84” and “85 and older”.')),
                      html.Div(id='output_10b-container'),
@@ -341,7 +343,8 @@ layout = html.Div(children=[
 
                 # 3. HICC Section 3.6, data point 14a. Income Cats and Affordable Shelter costs
                 html.Div([
-                     html.H4(children=html.Strong(f'HICC HNA Template: Section 3.6')),
+                     html.H4(children=html.Strong(f'Core Housing Need')),
+                     html.H5(children=html.Strong(f'HICC HNA Template: Section 3.6')),
                      html.H5(children=html.Strong('Income Categories and Affordable Shelter Costs, 2021'),
                              id='visualization14a'),
                      html.H6("Income categories are determined by their relationship with each geography's Area Median Household Income (AMHI). "
@@ -404,7 +407,8 @@ layout = html.Div(children=[
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
-                                       }
+                                       },
+                        style_table={'width': '80%', 'margin': 'left'},
                      ),
                      html.Div(id='output_14b-container'),
                      html.Br()
@@ -434,15 +438,17 @@ layout = html.Div(children=[
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
-                                       }
+                                       },
+                         style_table={'width': '80%', 'margin': 'left'},
                      ),
-                     html.P("Please note that Statistics Canada employs rounding and suppression for small populations, and so a zero count may not necessarily represent zero households, but too few to report."),
                      html.I(children= [
-                         "*The census does not evaluate all households for Core Housing Need – ",
+                         "*Please note that Statistics Canada employs rounding and suppression for small populations, and so a zero count "
+                         "may not necessarily represent zero ",
+                         html.Br(),
+                         "households, but too few to report.The census does not evaluate all households for Core Housing Need – ",
                          html.A("see more here", href="https://www23.statcan.gc.ca/imdb/p3Var.pl?Function=DEC&Id=1230313", target='_blank')
                      ]),
                      html.Br(),
-                     html.I("**Data on transgender, non-binary, or same-gender couples will be added once Statistics Canada has completed the data order."),
                      html.H6(
                          f'The following graph illustrates the above table, displaying the percentage of households in CHN for each population group.',
                      ),
@@ -506,16 +512,18 @@ layout = html.Div(children=[
                          "is equal to or less than 50% of the area median household income in a given year. "
                          ]),
                      
-                     html.H6(
-                         "To understand how we calculated affordable units gained or lost, see our methodology. "
-                         ),
+                     html.H6([
+                         "To understand how we calculated affordable units gained or lost, see our ",
+                         html.A("methodology.", href='https://hart.ubc.ca/federal-hna-template-methodology/', target="_blank"),
+                     ]),
 
                      html.H6("In some cases, affordable units from existing stock (built prior 2016) are gained. This can be due to factors such as "
                              "stagnating rents in aging buildings or increases to household incomes. Gains in affordable units are represented by negative values."),
 
                     html.Br(),
 
-                    html.H6("Dwellings affordable to Very low-income & Low-income households:", style={"textDecoration": "underline"}),
+                    html.H6("The following table shows the number and net change of affordable rentals for "
+                            "Very Low- and Low-Income households (i.e. households earning less than 50% of AMHI)."),
 
                      dbc.Button("Export", id="export-table-18", className="mb-3", color="primary"),
                      dash_table.DataTable(
@@ -532,6 +540,7 @@ layout = html.Div(children=[
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
                                        },
+                         style_table={'width': '70%', 'margin': 'left'},
                          css=[{
                                 'selector': 'tr:nth-child(2)',
                                 'rule':'''
@@ -540,19 +549,11 @@ layout = html.Div(children=[
                               }],
 
                      ),
-                     html.I(children=[
-                         "*Note: Due to differences in available responses used in the long-form census between 2016 and 2021 regarding period of construction, ",
-                         'this estimate of units lost will double-count any units built between January 1, 2016 and May 10, 2016 (i.e. census day 2016). '
-                         'The 2016 long-form census uses the period "2011-2016" as an option for '
-                         "the dwelling's period of construction while "
-                         'the 2021 long-form census uses the periods "2011-2015," "2016-2020," and "2021" as the possible options.',
-                          
-                        ]),
-                    
-                    html.Br(),
+                     
                     html.Br(),
                     
-                    html.H6("Dwellings affordable to Very low-income households:", style={"textDecoration": "underline"}),
+                    html.H6("The following table shows the number and net change of affordable rentals for "
+                            "Very Low-Income households (i.e. households earning less than 20% of AMHI)."),
                     dbc.Button("Export", id="export-table-23", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_13b',
@@ -568,6 +569,7 @@ layout = html.Div(children=[
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
                                        },
+                         style_table={'width': '70%', 'margin': 'left'},
                          css=[{
                                 'selector': 'tr:nth-child(2)',
                                 'rule':'''
@@ -578,9 +580,9 @@ layout = html.Div(children=[
                      ),
 
                     html.Br(),
-                    html.Br(),
                     
-                    html.H6("Dwellings affordable to Low-income households:", style={"textDecoration": "underline"}),
+                    html.H6("The following table shows the number and net change of affordable rentals for Low-Income households "
+                            "(i.e. households earning 20-50% of AMHI)."),
                     dbc.Button("Export", id="export-table-24", className="mb-3", color="primary"),
                      dash_table.DataTable(
                          id='output_13c',
@@ -596,6 +598,7 @@ layout = html.Div(children=[
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
                                        },
+                         style_table={'width': '70%', 'margin': 'left'},
                          css=[{
                                 'selector': 'tr:nth-child(2)',
                                 'rule':'''
@@ -604,6 +607,18 @@ layout = html.Div(children=[
                               }],
 
                      ),
+                     html.I(children=[
+                         "*Note: Due to differences in available responses used in the long-form census between 2016 and 2021 regarding period of construction, ",
+                         html.Br(),
+                         'this estimate of units lost will double-count any units built between January 1, 2016 and May 10, 2016 (i.e. census day 2016). The 2016 ',
+                         html.Br(),
+                         'long-form census uses the period "2011-2016" as an option for '
+                         "the dwelling's period of construction while the 2021 long-form census ",
+                         html.Br(),
+                         'uses the periods "2011-2015," "2016-2020," and "2021" as the possible options.',
+                          
+                        ]),
+                    
 
                      html.Div(id='output_13-container'),
                      html.Br()
@@ -622,7 +637,7 @@ layout = html.Div(children=[
                                        html.U('primary'),
                                        ' rental units per ',
                              html.A("CMHC’s Rental Market Survey", href='https://hart.ubc.ca/federal-hna-template-methodology/', target="_blank"),
-                                       ' (i.e. all occupied and vacant rental units). These values reflect data collected in October of each year.'
+                                       ' (all occupied and vacant rental units). These values reflect data collected in October of each year.'
 
                          ]
                      ),
@@ -646,7 +661,7 @@ layout = html.Div(children=[
                      html.Br(),
                      html.Br(),
                      html.H6(
-                         "The following chart shows the change in average monthly rent for the primary rental market between years as a dollar amount."),
+                         "The following chart shows the change in average monthly rent for the primary rental market (both occupied and vacant units) between years as a dollar amount."),
 
                      # Plot
                      html.Div([
@@ -657,7 +672,7 @@ layout = html.Div(children=[
 
                                    ),
                          html.H6(
-                             f'The following chart shows the percentage change in average monthly rent for the primary rental market between years.',
+                             f'The following chart shows the percentage change in average monthly rent for the primary rental market (both occupied and vacant units) between years.',
                              # style={'fontFamily': 'Open Sans, sans-serif'}
                          ),
                          dcc.Graph(id='graph_2b_2',
@@ -674,7 +689,7 @@ layout = html.Div(children=[
 
                  # 6. HICC Section 5.4, data point 2. Output 2b
                  html.Div([
-                     html.H6('The following table shows the annual change in monthly rent for primary rental units both as a dollar amount and as a percentage.',
+                     html.H6('The following table shows the annual change in monthly rent for primary rental units (both occupied and vacant units) both as a dollar amount and as a percentage.',
                              ),
                      dbc.Button("Export", id="export-table-2", className="mb-3", color="primary"),
                      dash_table.DataTable(
@@ -779,7 +794,7 @@ layout = html.Div(children=[
 
                  # HICC Section 5.6, data point 5.
                  html.Div([
-                 html.H4(children=[html.Strong('Change in Core Housing Need Over Time (2016 to 2021) by Tenure'),
+                 html.H4(children=[html.Strong('Change in Core Housing Need Over Time (2016-2021) by Tenure'),
                                    ],
                          #style={'fontFamily': 'Open Sans, sans-serif'},
                          id='visualization5'),
@@ -922,10 +937,15 @@ layout = html.Div(children=[
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
-                                       }
+                                       },
+                         style_table={'width': '70%', 'margin': 'left'}
                      ),
                      html.P(children=[
-                         html.I('*Note: There are varying definitions of "below market"; we have calculated this figure by calculating shelter that is affordable to households earning 80% of Area Median Household Income. Across Canada, median household incomes for renters in 2020 were only slightly over half (54%) of median household income for homeowners. Therefore, it should be noted that a renter household making 80% of AMHI in 2020 should be considered relatively high-income. Read more in our '),
+                         html.I('*Note: There are varying definitions of "below market"; we have calculated this figure by calculating shelter that is '
+                                'affordable to households earning 80% of Area Median Household Income. Across Canada, median household incomes for renters '
+                                'in 2020 were only slightly over half (54%) of median household income for homeowners. Therefore, it should be noted '
+                                'that a renter household making 80% of AMHI in 2020 should be considered relatively high-income, and this value should '
+                                'not be considered a proxy for how many homes are affordable. Read more in our '),
                          html.A(html.I("methodology."), href='https://hart.ubc.ca/federal-hna-template-methodology/', target="_blank")
                      ]),
 
@@ -939,7 +959,7 @@ layout = html.Div(children=[
                      html.H4(children=html.Strong('Number of co-operative housing units')),
                      html.H5(children=html.Strong('HICC HNA Template: Section 5.7.1')),
                      html.H6(
-                         f'The following table shows the number of co-operative housing units who were registered with the Co-operative Housing Federation of Canada (CHF Canada) with an address within the selected geography. '),
+                         f'The following table shows the number of co-operative housing units who were registered with the Co-operative Housing Federation of Canada (CHF Canada) with an address within the selected geography in 2024. '),
                      # TABLE for output 12
                      dbc.Button("Export", id="export-table-19", className="mb-3", color="primary"),
                      dash_table.DataTable(
@@ -1054,6 +1074,10 @@ layout = html.Div(children=[
                      html.H5(children=html.Strong('HICC HNA Template: Section 6.1.1'),
                              id='visualization16'),
                      html.H6("The following table shows the projected total number of households in 2031 by household size and income category."),
+                     
+                     html.H6("In this table, we project forward using the line of best fit to the combined income and household size category. "
+                     "Since the combined categories have unique values, and are also subject to Statistics Canada’s random rounding, "
+                     "the resulting Totals here may not match the sum of all when projecting households by either income or household size alone."),
 
                      dbc.Button("Export", id="export-table-22", className="mb-3", color="primary"),
                      dash_table.DataTable(
@@ -1069,12 +1093,11 @@ layout = html.Div(children=[
                                      },
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
 
-                                       }
+                                       },
+                         style_table={'width': '80%', 'margin': 'left'},
                      ),
                      html.Br(),
-                     html.H6("In this table, we project forward using the line of best fit to the combined income and household size category. "
-                     "Since the combined categories have unique values, and are also subject to Statistics Canada’s random rounding, "
-                     "the resulting Totals here may not match the Totals when projecting households by either income or household size alone."),
+                     
                      html.Div(id='output_16-container'),
                      html.Br()
                  ], className='pg2-output16-lgeo'
@@ -1439,10 +1462,10 @@ def table_generator(geo, df, table_id):
 
     elif table_id == 'output_3b':
         filtered_df = filtered_df[filtered_df['Metric'] == 'Change in Vacancy Rate'].rename(
-            columns={'2017': '2016 to 2017', '2018': '2017 to 2018',
-                     '2019': '2018 to 2019', '2020': '2019 to 2020',
-                     '2021': '2020 to 2021', '2022': '2021 to 2022',
-                     '2023': '2022 to 2023'}
+            columns={'2017': '2016-2017', '2018': '2017-2018',
+                     '2019': '2018-2019', '2020': '2019-2020',
+                     '2021': '2020-2021', '2022': '2021-2022',
+                     '2023': '2022-2023'}
         )  #.rename('Change in Vacancy Rate', 'Change in Vacancy Rate (percentage points')
         filtered_df.drop('2016', axis=1, inplace=True)
         for col in filtered_df.columns[4:]:
@@ -1639,20 +1662,21 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "100px"
+                                     "maxWidth": "300px"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'right'
+                                     'textAlign': 'right',
+                                     "maxWidth": "500px"
                                  } for c in table_columns[1:]
                              ]
     new_data_style = [
             {
                 'if': {'row_index': i, 'column_id': 'Characteristic'},
-                'backgroundColor': '#b0e6fc',
-                'color': '#b0e6fc',
+                'backgroundColor': '#39c0f7',
+                'color': '#39c0f7',
                 'border-top': 'none',
                 'rowSpan': 2,
                 "maxWidth": "190px",
@@ -1660,7 +1684,12 @@ def update_output_1a(geo, geo_c, scale, selected_columns):
 
 
             } for i in [1, 3]
+        ] + [{
+            'if': {'row_index': i, 'column_id': 'Characteristic'},
+            'backgroundColor': '#39c0f7',
+        } for i in [0, 2]
         ]
+    
     
     #TODO: Use this if alignment is required as per the doc
     # new_header_style = [
@@ -1734,20 +1763,21 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "100px"
+                                     "maxWidth": "500px"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'right'
+                                     'textAlign': 'right',
+                                     "maxWidth": "400px"
                                  } for c in table_columns[1:]
                              ]
     new_data_style = [
             {
                 'if': {'row_index': i, 'column_id': 'Characteristic'},
-                'backgroundColor': '#b0e6fc',
-                'color': '#b0e6fc',
+                'backgroundColor': '#39c0f7',
+                'color': '#39c0f7',
                 'border-top': 'none',
                 'rowSpan': 2,
                 "maxWidth": "190px",
@@ -1755,6 +1785,10 @@ def update_output_1b(geo, geo_c, scale, selected_columns):
 
 
             } for i in [1, 3]
+        ] + [{
+            'if': {'row_index': i, 'column_id': 'Characteristic'},
+            'backgroundColor': '#39c0f7',
+        } for i in [0, 2]
         ]
     
     #TODO: Use this if alignment is required as per the doc
@@ -1936,10 +1970,10 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Year',
-        tickfont=dict(size=10)
+        tickfont=dict(size=12)
     )
     fig1.update_yaxes(
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
         tickformat = "$.0f",
     #tickprefix="$",  # Adds % sign to each tick
         # range = [min(table['']),100]
@@ -1975,10 +2009,10 @@ def update_geo_figure_2b(geo, geo_c, scale, refresh):
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Year',
-        tickfont=dict(size=10)
+        tickfont=dict(size=12)
     )
     fig2.update_yaxes(
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
         # fixedrange = True,
@@ -2116,11 +2150,11 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Year',
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
 
     )
     fig1.update_yaxes(
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
         title='Vacancy Rate (%)'
@@ -2153,10 +2187,10 @@ def update_geo_figure_3ab(geo, geo_c, scale, refresh):
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Year',
-        tickfont=dict(size=10)
+        tickfont=dict(size=12)
     )
     fig2.update_yaxes(
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
 
         # range = [min(table['']),100]
         # fixedrange = True,
@@ -2372,10 +2406,10 @@ def update_geo_figure_4a(geo, geo_c, scale, refresh):
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Year',
-        tickfont=dict(size=10)
+        tickfont=dict(size=12)
     )
     fig1.update_yaxes(
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
         tickformat = ",.0f",
         # range = [min(table['']),100]
         # fixedrange = True,
@@ -2460,10 +2494,10 @@ def update_geo_figure_4b(geo, geo_c, scale, refresh):
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Year',
-        tickfont=dict(size=10)
+        tickfont=dict(size=12)
     )
     fig1.update_yaxes(
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
         tickformat = ",.0f",
         # range = [min(table['']),100]
         # fixedrange = True,
@@ -2507,7 +2541,7 @@ def update_output_5a(geo, geo_c, scale, selected_columns):
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table, text_align= "right")
     table = table.rename(columns={'Metric': 'Number of households in CHN', 
-                                   '2021 - 2016': 'Change between 2016 and 2021'}
+                                   '2021 - 2016': 'Change 2016-2021'}
                                    ).replace('Owner', 'Owner-occupied'
                                              ).replace('Renter', 'Renter-occupied'
                                                        )
@@ -2521,13 +2555,14 @@ def update_output_5a(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "180px"
+                                    #  "maxWidth": "180px"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'right'
+                                     'textAlign': 'right',
+                                     'width': '20%'
                                  } for c in table_columns[1:]
                              ]
 
@@ -2646,10 +2681,10 @@ def update_geo_figure_5a(geo, geo_c, scale, refresh):
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Tenure',
-        tickfont=dict(size=10)
+        tickfont=dict(size=12)
     )
     fig1.update_yaxes(
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
         tickformat = ",.0f",
         # range = [min(table['']),100]
         # fixedrange = True,
@@ -2709,10 +2744,10 @@ def update_geo_figure_5b(geo, geo_c, scale, refresh):
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Tenure',
-        tickfont=dict(size=10)
+        tickfont=dict(size=12)
     )
     fig1.update_yaxes(
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
         # range = [min(table['']),100]
@@ -2785,12 +2820,16 @@ def update_output_6(geo, geo_c, scale, selected_columns):
     new_data_style = [
             {
                 'if': {'row_index': 1, 'column_id': ' '},
-                'backgroundColor': '#b0e6fc',
-                'color': '#b0e6fc',
+                'backgroundColor': '#39c0f7',
+                'color': '#39c0f7',
                 'border-top': 'none',
                 'rowSpan': 2
 
             }
+        ] + [{
+            'if': {'row_index': i, 'column_id': ' '},
+            'backgroundColor': '#39c0f7',
+        } for i in [0, 1, 2]
         ]
     style_data_conditional.extend(new_data_style)
 
@@ -2819,7 +2858,8 @@ def update_geo_figure_6(geo, geo_c, scale, refresh):
                         textinfo = 'percent',
                         pull=[0.1, 0],
                         marker_colors=['#39c0f7', '#3eb549'],
-                        hovertemplate=' %{label}</b><br>' + 'Value: %{value:,.0f}<br>' + '<extra></extra>'
+                        hovertemplate=' %{label}</b><br>' + 'Value: %{value:,.0f}<br>' + '<extra></extra>',
+                        
                 ))
 
     # Plot layout settings
@@ -2836,7 +2876,7 @@ def update_geo_figure_6(geo, geo_c, scale, refresh):
                     legend_title = "Share",
 
                     )
-    fig1.update_traces(textfont=dict(size=16, family='Arial', color='black'),
+    fig1.update_traces(textfont=dict(size=16, family='Arial Black', color='black'),
                        )
     return fig1
 
@@ -2866,7 +2906,7 @@ def update_output_7(geo, geo_c, scale, selected_columns):
     table = number_formatting(table, table.columns[1:], 0)
 
     style_data_conditional = generate_style_data_conditional(table)
-    style_header_conditional = generate_style_header_conditional(table)
+    style_header_conditional = generate_style_header_conditional(table, text_align='right')
     table = table.rename(columns={'Metric': ''}).replace(
         'Private rental market housing units',
         'Number of private (i.e. unsubsidized) rental market housing units').replace(
@@ -2889,7 +2929,7 @@ def update_output_7(geo, geo_c, scale, selected_columns):
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'right'
                                  } for c in table_columns[1:]
                              ]
     
@@ -2938,7 +2978,7 @@ def update_geo_figure_7(geo, geo_c, scale, refresh):
         title=f'Share for subsidized vs unsubsidized rental units {geo}',
         legend_title="Share",
     )
-    fig1.update_traces(textfont=dict(size=16, family='Arial', color='black'))
+    fig1.update_traces(textfont=dict(size=16, family='Arial Black', color='black'))
 
     return fig1
 
@@ -2968,11 +3008,11 @@ def update_output_8(geo, geo_c, scale, selected_columns):
     table = percent_formatting(table, table.columns[1:], mult_flag=1, conditions=conditions)
 
     style_data_conditional = generate_style_data_conditional(table)
-    style_header_conditional = generate_style_header_conditional(table)
+    style_header_conditional = generate_style_header_conditional(table, text_align='right')
     table = table.rename(columns={'Metric': ''}).replace(
         'Renters (unsubsidized)',
-        'Number of occupied housing units that are below-market rent in the private market').replace(
-        '% of Total (Unsubsidized)', 'Percentage of occupied housing units that are below-market rent in the private market')
+        'Number of occupied housing units that are below-market rent* in the private market').replace(
+        '% of Total (Unsubsidized)', 'Percentage of occupied housing units that are below-market rent* in the private market')
 
     # Generating callback output to update table
 
@@ -2982,14 +3022,14 @@ def update_output_8(geo, geo_c, scale, selected_columns):
                                  {
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'left',
-                                     "maxWidth": "100px"
+                                     'textAlign': 'right',
+                                     "width": "80%"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'right'
                                  } for c in table_columns[1:]
                              ]
     return table_columns, table.to_dict(
@@ -3130,10 +3170,10 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Age Group',
-        tickfont=dict(size=10)
+        tickfont=dict(size=12)
     )
     fig1.update_yaxes(
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
         tickformat = ".0f",
         ticksuffix="%",  # Adds % sign to each tick
         # fixedrange = True,
@@ -3168,10 +3208,10 @@ def update_geo_figure_9(geo, geo_c, scale, refresh):
         # range = [0, 1],
         # tickformat =  ',.0%',
         title='Age Group',
-        tickfont=dict(size=10)
+        tickfont=dict(size=12)
     )
     fig2.update_yaxes(
-        tickfont=dict(size=10),
+        tickfont=dict(size=12),
         # range = [min(table['']),100]
         # fixedrange = True,
         title='Percentage point change in Headship Rate'
@@ -3204,8 +3244,8 @@ def update_output_10a(geo, geo_c, scale, selected_columns):
     table = number_formatting(table, list(table.columns[[1, 2, 4, 5]]), 0)
 
     style_data_conditional = generate_style_data_conditional(table)
-    style_header_conditional = generate_style_header_conditional(table)
-    table = table.rename(columns={'Age': 'Age Group'})
+    # style_header_conditional = generate_style_header_conditional(table)
+    table = table.rename(columns={'Age': 'Age Group'}).replace('75 and older', '75 and older**')
     table.columns = pd.MultiIndex.from_tuples(
         [(col[0] + " (table 1 of 2)", col[1]) for col in table.columns]
     )
@@ -3230,7 +3270,7 @@ def update_output_10a(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "50px"  #CHANGE THIS to update the column width according to doc
+                                     "maxWidth": "100px"  #CHANGE THIS to update the column width according to doc
                                  }
                              ] + [
                                  {
@@ -3248,15 +3288,15 @@ def update_output_10a(geo, geo_c, scale, selected_columns):
     #                             }
     #                             for i in range(len(table_columns))
     #                         ]
-    new_header_style = [
-        {
-        'if': {'column_id': col['id']},
-        'textAlign': 'center' if col['id'] == table_columns[0]['id'] else 'right'
-        }
-        for col in table_columns
-    ]
-
-    style_header_conditional.extend(new_header_style)
+    style_header_conditional = []
+    for index, col in enumerate(table):
+        style_header = {'if': {'header_index': index},
+                        'backgroundColor': '#002145' if index == 0 else '#39C0F7',
+                        'color': '#FFFFFF' if index == 0 else '#000000',
+                        'textAlign': 'right' if index == 2 else 'center',  #'center' if index == 0 else 'right',  #
+                        'border': '1px solid #002145',
+                        }
+        style_header_conditional.append(style_header)
     return table_columns, table_data, style_data_conditional, style_cell_conditional, style_header_conditional
 
 
@@ -3284,13 +3324,18 @@ def update_output_10b(geo, geo_c, scale, selected_columns):
 
     style_data_conditional = generate_style_data_conditional(table)
     #style_header_conditional = generate_style_header_conditional(table)
-    table = table.rename(columns={'Age': 'Age Group'}).replace('Total', 'Total Suppressed Households')
+    table = table.rename(columns={'Age': 'Age Group'}).replace('Total', '').replace('75 and older', '75 and older*')
+    
+    # Moving total from 1st column to 3rd column
+    table.loc[table[table.columns[0]] == "", table.columns[2]] = "Total Suppressed Households"
+
     table.columns = pd.MultiIndex.from_tuples(
         [(col[0] + " (table 2 of 2)", col[1]) for col in table.columns]
     )
+    
     if all(val == "n/a" for val in table[table.columns[:-1]][:-1]):  # Ignore last row (total row)
-        table.loc[table["Age Group"] == "Total Suppressed Households", table.columns[:-1]] = "n/a"
-
+        table.loc[table["Age Group"] == "", table.columns[:-1]] = "n/a"
+    
     # Generating callback output to update table
 
     table_columns = [{"name": [geo, col1, col2], "id": f"{col1}_{col2}"} for col1, col2 in table.columns]
@@ -3307,13 +3352,14 @@ def update_output_10b(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "100px"
+                                     "width": "25%"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'right'
+                                     'textAlign': 'right',
+                                     "width": "25%"
                                  } for c in table_columns[1:]
                              ]
     #new_data_style = generate_additional_data_style(table, table_columns)
@@ -3375,9 +3421,9 @@ def update_output_11(geo, geo_c, scale, selected_columns):
     table = percent_formatting(table, [('Households in Core Housing Need (CHN) by priority population, 2021', 'Rate of CHN')], mult_flag=1, conditions={})
 
     style_data_conditional = generate_style_data_conditional(table)
-    style_header_conditional = generate_style_header_conditional(table)
+    # style_header_conditional = generate_style_header_conditional(table, text_align='right')
     table = table.replace("Youth", "HH head age 18-29 (Youth-led)").replace(
-                          "SameGender", "HH with gender diverse couple or includes a transgender or non-binary person**").replace(
+                          "SameGender", "HH with gender diverse couple or includes a transgender or non-binary person").replace(
                           "MentalHealth",  "HH with person(s) dealing with mental health and addictions activity limitation").replace(
                           "Veteran", "HH with Veteran(s)").replace(
                           "SingleMother", "Single-mother-led HH").replace(
@@ -3409,13 +3455,13 @@ def update_output_11(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "200px"
+                                     "width": "60%"
                                  }
                              ] + [
                                  {
                                      'if': {'column_id': c['id']},
                                      'backgroundColor': columns_color_fill[1],
-                                     'textAlign': 'center'
+                                     'textAlign': 'right'
                                  } for c in table_columns[1:]
                           ]
 
@@ -3430,12 +3476,16 @@ def update_output_11(geo, geo_c, scale, selected_columns):
 
     ]
     style_data_conditional.extend(new_data_style)
-    for index, col in enumerate(table):
-        header_style = {  'if': {'header_index': 2, 'column_id': 'Households in Core Housing Need (CHN) by priority population, 2021_Priority Populations' },
-            'textAlign': 'right',
-        }
 
-        style_header_conditional.append(header_style)
+    style_header_conditional = []
+    for index, col in enumerate(table):
+        style_header = {'if': {'header_index': index},
+                        'backgroundColor': '#002145' if index == 0 else '#39C0F7',
+                        'color': '#FFFFFF' if index == 0 else '#000000',
+                        'textAlign': 'right' if index == 2 else 'center',  #'center' if index == 0 else 'right',  #
+                        'border': '1px solid #002145',
+                        }
+        style_header_conditional.append(style_header)
 
     return table_columns, table_data, style_data_conditional, style_cell_conditional, style_header_conditional
 
@@ -3489,8 +3539,7 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
             y=plot_df_frag[('Households in Core Housing Need (CHN) by priority population, 2021', 'Priority Populations')],
             x=plot_df_frag[('Households in Core Housing Need (CHN) by priority population, 2021', 'Rate of CHN')],
             name=i,
-            marker_color="#002145" if plot_df_frag[('Households in Core Housing Need (CHN) by priority population, 2021', 'Rate of CHN')].iloc[0] == max_value
-            else ("#3EB549" if i == 'Community (all HHs)' else "#39C0F7"),
+            marker_color="#3EB549" if i == 'Community (all HHs)' else "#39C0F7",
             orientation='h',
             hovertemplate='%{y} - ' + '%{x: .2%}<extra></extra>'
         ))
@@ -3498,15 +3547,17 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
 
     # Plot layout settings
     fig.update_layout(
-        width=900,
+        width=1100,
+        height=600,
         showlegend=False,
-        legend=dict(font=dict(size=9)),
+        legend=dict(font=dict(size=10)),
         yaxis=dict(autorange="reversed"),
         modebar_color=modebar_color,
         modebar_activecolor=modebar_activecolor,
         plot_bgcolor='#FFFFFF',
         title=f'Percentage of Households in Core Housing Need, by Priority Population, 2021<br>{geo}',
         legend_title="Priority Group",
+        bargap=0.3
     )
 
     if not table.empty:
@@ -3514,11 +3565,11 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
             fixedrange=True,
             tickformat=',.0%',
             title='% of Priority Population HH',
-            tickfont=dict(size=10),
+            tickfont=dict(size=12),
             range= [0, math.ceil(max_value * 10) / 10],
         )
         fig.update_yaxes(
-            tickfont=dict(size=10),
+            tickfont=dict(size=12),
             fixedrange=True,
             title='Priority Group'
         )
@@ -3545,7 +3596,7 @@ def update_output_12(geo, geo_c, scale, selected_columns):
     table = table_generator(geo, output_12, 'output_12')
     
     if not table.empty:
-        table = pd.DataFrame({'remove': 'Number of co-operative housing units', '2024': table.values[0]})
+        table = pd.DataFrame({'remove': 'Number of co-operative housing units*', '2024': table.values[0]})
     table = number_formatting(table, list(table.columns[1:]), 0)
 
     style_data_conditional = generate_style_data_conditional(table)
@@ -3632,7 +3683,7 @@ def update_output_13a(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "100px"
+                                     "width": "80%"
                                  }
                              ] + [
                                  {
@@ -3752,7 +3803,7 @@ def update_output_13b(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "100px"
+                                     "width": "80%"
                                  }
                              ] + [
                                  {
@@ -3830,7 +3881,7 @@ def update_output_13c(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "100px"
+                                     "width": "80%"
                                  }
                              ] + [
                                  {
@@ -3923,6 +3974,13 @@ def update_output_14a(geo, geo_c, scale, selected_columns):
                                 }
                             ]
     
+    new_header_style = {
+                            'if': {'column_id': table_columns[0]['id'], 'header_index': 2},
+                            'borderRight': 'none'
+                        }
+                    
+    style_header_conditional.append(new_header_style)
+    
     return table_columns, table.to_dict(
         'records'), style_data_conditional, style_cell_conditional, style_header_conditional
 
@@ -3969,7 +4027,7 @@ def update_geo_figure_14b(geo, geo_c, scale, refresh):
                     )
     
     fig_14b.update_yaxes(
-                        tickfont = dict(size = 10), 
+                        tickfont = dict(size = 12), 
                         fixedrange = True, 
                         title = 'Income Categories<br>(Max. affordable shelter costs)'
                         )
@@ -3977,7 +4035,7 @@ def update_geo_figure_14b(geo, geo_c, scale, refresh):
                     fixedrange = True, 
                     tickformat =  ',.0%', 
                     title = '% of HH', 
-                    tickfont = dict(size = 10)
+                    tickfont = dict(size = 12)
                     )
 
     return fig_14b
@@ -4091,7 +4149,7 @@ def update_output_16(geo, geo_c, scale, selected_columns):
                                      'if': {'column_id': table_columns[0]['id']},
                                      'backgroundColor': columns_color_fill[1],
                                      'textAlign': 'right',
-                                     "maxWidth": "100px"
+                                     "width": "25%"
                                  }
                              ] + [
                                  {

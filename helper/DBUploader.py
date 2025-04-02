@@ -15,6 +15,8 @@ class DBUploader:
         self.transit_filepath = transit_filepath
         self.priority_pop_filepath = priority_pop_filepath
 
+        self.cma_data = pd.read_excel(r"..\\sources\\mapdata_simplified\\cma_data\\2021_CMA.xls")
+
         self.db_path = db_path
         
         self.engine = create_engine('sqlite:///' + self.db_path)
@@ -45,12 +47,25 @@ class DBUploader:
         self.insert_data(self.output_12, self.Output_12)
         self.insert_data(self.output_13, self.Output_13)
 
-        
+        self.insert_data(self.cma_data, self.CMA_Data)
 
         print('Database ready....')
 
 
     def upload_tables(self):
+
+        class CMA_Data(self.db_base):
+            __tablename__ = "cma_data"
+            pk = Column(Integer, primary_key=True, comment='primary key')  # Add Primary Key
+
+        self.CMA_Data = CMA_Data
+
+        # self, cls, df, variable_column, flag=0
+        for col in self.cma_data.columns:
+                if col in {'LANDAREA', 'SHAPE_Length', 'Shape_Area'}:
+                    setattr(self.CMA_Data, col, Column(Float))
+                else:
+                    setattr(self.CMA_Data, col, Column(String)) 
 
         class Output_1a(self.db_base):
             __tablename__ = "output_1a"

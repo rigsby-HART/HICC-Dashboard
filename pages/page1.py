@@ -85,7 +85,7 @@ opacity_value = 0.2
 
 # Default location in the map
 
-default_value = 'Ottawa CV (CSD, ON)'  #'Canada'  #change this back to Canada when done testing!
+default_value = 'Canada'  #'Ottawa CV (CSD, ON)'
 
 # Plot icon colors
 
@@ -565,11 +565,11 @@ def update_map(clickData, btn1, value, btn2, btn3, btn4, btn5):
             return fig_msr, subregion_name
 
     
-    # default map (show Ottawa) before clicking anything on the map
+    
     else:
 
-        # fig_m = province_map(value, True) # default map (show provinces) before clicking anything on the map
-        fig_m = subregion_map(value, True, 'N')
+        fig_m = province_map(value, True) # default map (show provinces) before clicking anything on the map
+        # fig_m = subregion_map(value, True, 'N') # default map (show Ottawa) before clicking anything on the map
 
         return fig_m, default_value
 
