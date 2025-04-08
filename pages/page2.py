@@ -189,6 +189,12 @@ layout = html.Div(children=[
 
                                        },
                          style_table={'width': '70%', 'margin': 'left'},
+                         css=[{
+                                'selector': 'tr:nth-child(2)',
+                                'rule':'''
+                                        display: None;
+                                '''
+                              }],
 
                      ), html.Div(id='output_1a-container'),
                      html.Br()
@@ -216,6 +222,12 @@ layout = html.Div(children=[
                          style_header={'textAlign': 'center', 'fontWeight': 'bold',
                                        },
                          style_table={'width': '70%', 'margin': 'left'},
+                         css=[{
+                                'selector': 'tr:nth-child(2)',
+                                'rule':'''
+                                        display: None;
+                                '''
+                              }],
 
                      ), html.Div(id='output_1b-container'),
                      html.Br()
@@ -1275,6 +1287,12 @@ def table_14a_generator(geo, df):
 
     filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
 
+    if filtered_df.empty:
+        return pd.DataFrame(columns=[
+            'Income Category', '% of Total HHs ', 'Annual HH Income ',
+            'Affordable Shelter Cost '
+        ])
+
     shelter_range = [i+'.1' for i in amhi_range]
 
     # pdb.set_trace()
@@ -1291,11 +1309,13 @@ def table_14a_generator(geo, df):
         shelter_list.append(filtered_df[s].tolist()[0])
 
     filtered_df_geo_index = filtered_df.set_index('Geography')
-    median_income = '${:0,.0f}'.format(float(filtered_df_geo_index.at[geo, 'Median income of household ($)']))
-    median_rent = '${:0,.0f}'.format(float(filtered_df_geo_index.at[geo, 'Rent AMHI']))
+    # median_income = '${:0,.0f}'.format(float(filtered_df_geo_index.at[geo, 'Median income of household ($)']))
+    median_income = '${:0,.0f}'.format(float(val)) if (val := filtered_df_geo_index.at[geo, 'Median income of household ($)']) not in [None, np.nan] and pd.notna(val) else np.nan
+    # median_rent = '${:0,.0f}'.format(float(filtered_df_geo_index.at[geo, 'Rent AMHI']))
+    median_rent = '${:0,.0f}'.format(float(val)) if (val := filtered_df_geo_index.at[geo, 'Rent AMHI']) not in [None, np.nan] and pd.notna(val) else np.nan
 
     table = pd.DataFrame({'Income Category': income_ct, '% of Total HHs ': portion_of_total_hh, 'Annual HH Income ': amhi_list, 'Affordable Shelter Cost ': shelter_list})
-    table['% of Total HHs '] = table['% of Total HHs '].astype(str) + '%'
+    table['% of Total HHs '] = np.where(table['% of Total HHs '].notna(), table['% of Total HHs '].astype(str) + '%', np.nan)
 
     return table, median_income, median_rent
 
@@ -1305,6 +1325,12 @@ def table_14b_generator(geo, df):
     geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
 
     filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
+    
+    if filtered_df.empty:
+        return pd.DataFrame(columns=[
+            'Income Category (Max. affordable shelter cost)', '1 Person HH', '2 Person HH',
+            '3 Person HH', '4 Person HH', '5+ Person HH', 'Total'
+        ])
 
     table = pd.DataFrame({'Income Category': income_ct})
 
@@ -1340,11 +1366,14 @@ def table_14b_generator(geo, df):
 
     i = 0
     for b, c in zip(x_base, x_columns):
+        value = filtered_df[c].tolist()[0]
         if i < 4:
-            x = b + " ($" + str(int(float(filtered_df[c].tolist()[0]))) + ")"
+            # x = b + " ($" + str(int(float(filtered_df[c].tolist()[0]))) + ")"
+            x = b + (" ($" + '{0:,.0f}'.format(float(value)) + ")" if pd.notna(value) else "")
             x_list.append(x)
         else:
-            x = b + " (>$" + str(int(float(filtered_df[c].tolist()[0]))) + ")"
+            # x = b + " (>$" + str(int(float(filtered_df[c].tolist()[0]))) + ")"
+            x = b + (" (>$" + '{0:,.0f}'.format(float(value)) + ")" if pd.notna(value) else "")
             x_list.append(x)
         i += 1
 
@@ -1366,16 +1395,21 @@ def graph_14b_generator(geo, df):
 
     filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
 
+    if filtered_df.empty:
+        return pd.DataFrame(columns=[
+            'HH_Size', 'Income_Category', 'Percent'
+        ])
+
     x_list = []
 
     i = 0
     for c in x_columns:
         value = filtered_df[c].tolist()[0]
         if i < 4:
-            x = " ($" + value + ") "
+            x = (" ($" + '{0:,.0f}'.format(float(value)) + ") " if pd.notna(value) else "")
             x_list.append(x)
         else:
-            x = " (>$" + value + ") "
+            x = (" (>$" + '{0:,.0f}'.format(float(value)) + ") " if pd.notna(value) else "")
             x_list.append(x)
         i += 1
 
@@ -1403,6 +1437,11 @@ def graph_14b_generator(geo, df):
 def table_16_generator(geo, df):
     geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
     filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
+
+    if filtered_df.empty:
+        return pd.DataFrame(columns=[
+            'HH Income Category', '1 Person', '2 Person', '3 Person', '4 Person', '5+ Person', 'Total '
+        ])
 
     # variables for table 16
     ahmi_projected_range = ['20% or under of area median household income (AMHI)',
