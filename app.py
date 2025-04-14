@@ -7,8 +7,7 @@ from io import BytesIO
 from app_file import app
 
 # Connect to app pages
-from pages import page1, page2
-from pages import page1
+from pages import page2, page1
 # Dynamically import the tables
 from pages.page2 import *
 
@@ -33,6 +32,8 @@ server = app.server
 def display_page(pathname):
     if pathname == '/page1':
         return page1.layout
+    # elif pathname == '/page1_copy':
+    #     return page1_copy.layout
     elif pathname == '/page2':
         return page2.layout
     else:
@@ -91,7 +92,8 @@ table_functions = {
 @app.callback(
     Output("download-dataframe-xlsx", "data"),
     [Input(f"export-table-{i}", "n_clicks") for i in range(1, 25)] +
-    [State('main-area', 'data'), State('comparison-area', 'data'), State('area-scale-store', 'data')],
+    [State('main-area', 'data'), State('comparison-area', 'data'), 
+     State('area-scale-store', 'data')],
     prevent_initial_call=True,
 )
 def download_xlsx(*args):

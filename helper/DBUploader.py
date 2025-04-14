@@ -10,17 +10,16 @@ from PrepareTables import PrepareTables
 
 
 class DBUploader:
-    def __init__(self, master_data_filepath, transit_filepath, priority_pop_filepath, db_path):
+    def __init__(self, master_data_filepath, transit_filepath, db_path):
         self.master_data_filepath = master_data_filepath
         self.transit_filepath = transit_filepath
-        self.priority_pop_filepath = priority_pop_filepath
 
-        self.cma_data = pd.read_excel(r"..\\sources\\mapdata_simplified\\cma_data\\2021_CMA.xls")
+        self.cma_data = pd.read_excel(r"..\\sources\\mapdata_simplified\\cma_data_parquet\\2021_CMA.xls")
 
         self.db_path = db_path
         
         self.engine = create_engine('sqlite:///' + self.db_path)
-        self.pt = PrepareTables(master_data_filepath, transit_filepath, priority_pop_filepath)
+        self.pt = PrepareTables(master_data_filepath, transit_filepath)
         self.db_base = declarative_base()
         self.upload_tables()
         self.Session = sessionmaker(bind=self.engine)
@@ -48,6 +47,10 @@ class DBUploader:
         self.insert_data(self.output_13, self.Output_13)
 
         self.insert_data(self.cma_data, self.CMA_Data)
+
+        self.insert_data(self.cma_output_14a, self.CMA_Output_14a)
+        self.insert_data(self.cma_output_14b, self.CMA_Output_14b)
+        self.insert_data(self.cma_output_16, self.CMA_Output_16)
 
         print('Database ready....')
 
@@ -287,6 +290,48 @@ class DBUploader:
         self.add_dynamic_columns(self.Output_13, self.output_13, 'Metric')
 
 
+        class CMA_Output_14a(self.db_base):
+            __tablename__ = "cma_output_14a"
+            pk = Column(Integer, primary_key=True, comment='primary key')  # Add Primary Key
+
+        self.CMA_Output_14a = CMA_Output_14a  # Assign the class
+
+        # Fetch and store data
+        self.cma_output_14a = self.pt.prepare_cma_output_14a()  # Ensure this returns a DataFrame
+        self.cma_output_14a['Metric'] = 'cma_output_14a' # Adding placeholder column
+
+        # Dynamically add columns after fetching the DataFrame
+        self.add_dynamic_columns(self.CMA_Output_14a, self.cma_output_14a, 'Metric')
+
+
+        class CMA_Output_14b(self.db_base):
+            __tablename__ = "cma_output_14b"
+            pk = Column(Integer, primary_key=True, comment='primary key')  # Add Primary Key
+
+        self.CMA_Output_14b = CMA_Output_14b  # Assign the class
+
+        # Fetch and store data
+        self.cma_output_14b = self.pt.prepare_cma_output_14b()  # Ensure this returns a DataFrame
+        self.cma_output_14b['Metric'] = 'cma_output_14b' # Adding placeholder column
+
+        # Dynamically add columns after fetching the DataFrame
+        self.add_dynamic_columns(self.CMA_Output_14b, self.cma_output_14b, 'Metric')
+
+
+        class CMA_Output_16(self.db_base):
+            __tablename__ = "cma_output_16"
+            pk = Column(Integer, primary_key=True, comment='primary key')  # Add Primary Key
+
+        self.CMA_Output_16 = CMA_Output_16  # Assign the class
+
+        # Fetch and store data
+        self.cma_output_16 = self.pt.prepare_cma_output_16()  # Ensure this returns a DataFrame
+        self.cma_output_16['Metric'] = 'cma_output_16' # Adding placeholder column
+
+        # Dynamically add columns after fetching the DataFrame
+        self.add_dynamic_columns(self.CMA_Output_16, self.cma_output_16, 'Metric')
+
+
         ##### Create all tables #######################################################################
         self.db_base.metadata.create_all(self.engine)
 
@@ -300,7 +345,11 @@ class DBUploader:
         # Dynamically add columns based on the DataFrame columns
         if flag == 0:
             for col in df.columns:
-                if col in {'Geography', f'{variable_column}', 'ALT_GEO_CODE_EN'}:
+                if col in {'Geography', f'{variable_column}', 'ALT_GEO_CODE_EN',
+                           '20% or under of AMHI', '21% to 50% of AMHI', '51% to 80% of AMHI',
+                            '81% to 120% of AMHI', '121% and more of AMHI', '20% or under of AMHI.1',
+                             '21% to 50% of AMHI.1', '51% to 80% of AMHI.1',
+                            '81% to 120% of AMHI.1', '121% and more of AMHI.1'}:
                     setattr(cls, col, Column(String))
                 else:
                     setattr(cls, col, Column(Float)) 

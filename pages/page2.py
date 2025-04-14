@@ -36,14 +36,19 @@ output_10b = pd.read_sql_table('output_10b', engine_new.connect())
 output_11 = pd.read_sql_table('output_11', engine_new.connect())
 output_12 = pd.read_sql_table('output_12', engine_new.connect())
 output_13 = pd.read_sql_table('output_13', engine_new.connect())
+cma_output_14a = pd.read_sql_table('cma_output_14a', engine_new.connect())
+cma_output_14b = pd.read_sql_table('cma_output_14b', engine_new.connect())
+cma_output_16 = pd.read_sql_table('cma_output_16', engine_new.connect())
 
+province_code_map = {10 : 'NL', 11 : 'PEI', 12 : 'NS', 13 : 'NB',
+                     24 : 'QC', 35 : 'ON', 46: 'MB', 47 : 'SK',
+                     48: 'AL', 59: 'BC', 60: 'YT', 61 : 'NT', 62 : 'NU'}
 
 # fetch required data from HART database
-df_partners = pd.read_sql_table('partners', engine_old.connect()) #priority population table
+df_partners = pd.read_sql_table('partners', engine_old.connect()) #raw table
 df_income = pd.read_sql_table('income', engine_old.connect())
 updated_csd = pd.read_sql_table('csd_hh_projections', engine_old.connect()).rename(columns=
                                                                                    {'Geo_Code': 'ALT_GEO_CODE_EN'})  # CSD level projections
-updated_csd['ALT_GEO_CODE_EN'] = updated_csd['ALT_GEO_CODE_EN'].fillna(-1).astype(int).astype(str)
 
 
 # Fetching province, CD and CSD ids from geography names
@@ -65,6 +70,8 @@ income_category = df_income.drop(['Geography'], axis=1)
 income_category = income_category.rename(columns = {'Formatted Name': 'Geography'})
 
 joined_df = income_category.merge(df_partners, how='left', on='Geography')
+
+
 
 # variables for table 14a, 14b
 x_base =['Very Low Income', 'Low Income', 'Moderate Income', 
@@ -110,6 +117,61 @@ mapped_geo_code = pd.read_sql_table('geocodes_integrated', engine_old.connect())
 # mapped_geo_code = pd.concat([mapped_geo_code, missing_codes_df])
 
 # Configuration for plot icons
+
+
+cma_data = pd.read_sql_table('cma_data', engine_new.connect())
+cma_data = cma_data[cma_data['CMAPUID'].notna()]
+cma_data['CMAPUID'] = pd.to_numeric(cma_data['CMAPUID'], errors='coerce').astype('Int64').astype(str)
+
+# cma_data["CMAUID"] = cma_data["CMAUID"].astype(str).str.zfill(3)
+cma_data['PRUID'] = cma_data['PRUID'].astype(int)
+cma_data['CDUID'] = cma_data['CSDUID'].str[:4].astype(int)
+
+df_region_list = pd.read_sql_table('regioncodes', engine_old.connect())
+df_region_list.columns = ['Geo_Code', 'Geography']
+df_province_list = pd.read_sql_table('provincecodes', engine_old.connect())
+df_province_list.columns = ['Geo_Code', 'Geography']
+
+cma_data["CMANAME"] = cma_data["CMANAME"] + " (CMA, " + cma_data["PRUID"].map(province_code_map) + ")"
+
+cma_data_for_dropdown = cma_data[['CMAPUID', 'CMANAME', 'PRUID', 'CDUID']].merge(df_province_list,
+                                                                       left_on='PRUID', right_on='Geo_Code',
+                                                                       how='left').rename(columns={
+                                                                           'Geo_Code': 'Province_Code', 'Geography': 'Province'
+                                                                           })
+
+
+required_cma_data = cma_data_for_dropdown[['CMAPUID', 'CMANAME', 'CDUID', 'Province_Code', 'Province']].merge(
+    df_region_list, left_on='CDUID', right_on='Geo_Code', how='left'
+).rename(columns={'CMAPUID': 'Geo_Code', 'CMANAME': 'Geography', 'Geo_Code': 'Region_Code', 'Geography': 'Region'
+                  }).drop_duplicates().drop('CDUID', axis=1)
+
+required_cma_data['Province_Code'] = required_cma_data['Province_Code'].astype(str)
+required_cma_data['Region_Code'] = required_cma_data['Region_Code'].astype(str)
+
+mapped_geo_code = pd.concat([mapped_geo_code, required_cma_data], axis=0)
+
+
+cma_output_14 = cma_output_14a.merge(cma_output_14b, on=['Geography', 'ALT_GEO_CODE_EN'],
+                                     how='left').merge(required_cma_data[['Geo_Code', 'Province_Code']], 
+                                                       left_on='ALT_GEO_CODE_EN', right_on='Geo_Code', how='left') 
+
+cma_output_14["Geography"] = cma_output_14["Geography"] + " (CMA, " + cma_output_14["Province_Code"].astype(int).map(province_code_map) + ")"
+
+cma_output_16["ALT_GEO_CODE_EN"] = cma_output_16["ALT_GEO_CODE_EN"].astype(int).astype(str)
+cma_output_16 = cma_output_16.merge(required_cma_data[['Geo_Code', 'Province_Code']], 
+                                                       left_on='ALT_GEO_CODE_EN', right_on='Geo_Code', how='left') 
+
+cma_output_16["Geography"] = cma_output_16["Geography"] + " (CMA, " + cma_output_14["Province_Code"].astype(int).map(province_code_map) + ")"
+
+projection_with_cma = pd.concat([updated_csd, cma_output_16], axis=0) #Added cma projection data
+# projection_with_cma.to_csv(r"C:\Users\himal\Documents\projected_cma.csv")
+
+
+final_joined_df = pd.concat([joined_df, cma_output_14], axis=0) # old hart data with CMAs
+
+
+
 
 config = {'displayModeBar': True, 'displaylogo': False,
           'modeBarButtonsToRemove': ['zoom', 'lasso2d', 'pan', 'select', 'zoomIn', 'zoomOut', 'autoScale', 'resetScale', 'resetViewMapbox']}
@@ -1284,15 +1346,18 @@ def get_filtered_geo(geo, geo_c, scale, selected_columns=None):
 # Defining different table generator for HART tables because the code structure is different
 def table_14a_generator(geo, df):
     geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
-
-    filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
+    
+    try:
+        filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}'].drop_duplicates()
+    except TypeError:
+        filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
 
     if filtered_df.empty:
-        return pd.DataFrame(columns=[
-            'Income Category', '% of Total HHs ', 'Annual HH Income ',
-            'Affordable Shelter Cost '
-        ])
-
+            return pd.DataFrame(columns=[
+                'Income Category', '% of Total HHs ', 'Annual HH Income ',
+                'Affordable Shelter Cost '
+            ])
+    
     shelter_range = [i+'.1' for i in amhi_range]
 
     # pdb.set_trace()
@@ -1308,10 +1373,14 @@ def table_14a_generator(geo, df):
     for s in shelter_range:
         shelter_list.append(filtered_df[s].tolist()[0])
 
-    filtered_df_geo_index = filtered_df.set_index('Geography')
-    # median_income = '${:0,.0f}'.format(float(filtered_df_geo_index.at[geo, 'Median income of household ($)']))
+    # pdb.set_trace()
+
+    try:
+        filtered_df_geo_index = filtered_df.set_index(geo)
+    except KeyError:
+        filtered_df_geo_index = filtered_df.set_index("Geography")
+    
     median_income = '${:0,.0f}'.format(float(val)) if (val := filtered_df_geo_index.at[geo, 'Median income of household ($)']) not in [None, np.nan] and pd.notna(val) else np.nan
-    # median_rent = '${:0,.0f}'.format(float(filtered_df_geo_index.at[geo, 'Rent AMHI']))
     median_rent = '${:0,.0f}'.format(float(val)) if (val := filtered_df_geo_index.at[geo, 'Rent AMHI']) not in [None, np.nan] and pd.notna(val) else np.nan
 
     table = pd.DataFrame({'Income Category': income_ct, '% of Total HHs ': portion_of_total_hh, 'Annual HH Income ': amhi_list, 'Affordable Shelter Cost ': shelter_list})
@@ -1323,9 +1392,12 @@ def table_14a_generator(geo, df):
 # Defining different table generator for HART tables because the code structure is different
 def table_14b_generator(geo, df):
     geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
-
-    filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
     
+    try:
+        filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}'].drop_duplicates()
+    except TypeError:
+        filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
+
     if filtered_df.empty:
         return pd.DataFrame(columns=[
             'Income Category (Max. affordable shelter cost)', '1 Person HH', '2 Person HH',
@@ -1333,6 +1405,8 @@ def table_14b_generator(geo, df):
         ])
 
     table = pd.DataFrame({'Income Category': income_ct})
+
+    # print(filtered_df[f'Total - Private households by presence of at least one or of the combined activity limitations (Q11a, Q11b, Q11c or Q11f or combined)-1-Households with income 20% or under of area median household income (AMHI)-Households in core housing need'])
 
     h_hold_value = []
     hh_p_num_list = [1, 2, 3, 4, '5 or more']
@@ -1353,7 +1427,9 @@ def table_14b_generator(geo, df):
 
             else:
                 column = f'Total - Private households by presence of at least one or of the combined activity limitations (Q11a, Q11b, Q11c or Q11f or combined)-{h2}-Households with income {i} of AMHI-Households in core housing need'
+                # print(column)
                 h_hold_value.append(filtered_df[column].tolist()[0])
+            # print(h_hold_value)
         
         if h == 1:        
             table[f'{h} Person HH'] = h_hold_value
@@ -1394,12 +1470,12 @@ def graph_14b_generator(geo, df):
     geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
 
     filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
-
+    # pdb.set_trace()
     if filtered_df.empty:
         return pd.DataFrame(columns=[
             'HH_Size', 'Income_Category', 'Percent'
         ])
-
+    
     x_list = []
 
     i = 0
@@ -1484,6 +1560,7 @@ def table_16_generator(geo, df):
 
 def table_generator(geo, df, table_id):
     geoid = mapped_geo_code.loc[mapped_geo_code['Geography'] == geo, :]['Geo_Code'].tolist()[0]
+    # print(geo)
 
     filtered_df = df[df['ALT_GEO_CODE_EN'] == f'{geoid}']
     # pdb.set_trace()
@@ -1551,26 +1628,26 @@ def table_generator(geo, df, table_id):
         melted_rates = filtered_df.melt(id_vars=filtered_df.columns[:3], 
                                         value_vars= ["Youth_Rate of CHN", "SameGender_Rate of CHN", 
                                                       "MentalHealth_Rate of CHN", "Veteran_Rate of CHN", 
-                                                      "SingleMother_Rate of CHN", "WomenLed_Rate of CHN",
-                                                      "Indigenous_Rate of CHN", "VisibleMinority_Rate of CHN",
-                                                      "BlackLed_Rate of CHN", "NewImmigrant_Rate of CHN",
-                                                      "Refugee_Rate of CHN", "Under25_Rate of CHN",
-                                                      "Between65_Rate of CHN", "Over85_Rate of CHN",
-                                                      "PhysicalLimitation_Rate of CHN", "MentalLimitation_Rate of CHN",
-                                                      "Transgender_Rate of CHN", "All_Rate of CHN"], 
+                                                      "SingleMother_Rate of CHN", "Women_Rate of CHN",
+                                                      "IndigenousHH_Rate of CHN", "VisibleMinority_Rate of CHN",
+                                                      "Black_Rate of CHN", "RecentImmigrant_Rate of CHN",
+                                                      "Refugee_Rate of CHN", "Under24_Rate of CHN",
+                                                      "Over65_Rate of CHN", "Over85_Rate of CHN",
+                                                      "Physical-AL_Rate of CHN", "Cognitive-Mental-Addictions-AL_Rate of CHN",
+                                                      "TransNonBinary_Rate of CHN", "Total_Rate of CHN"], 
                                                       var_name= 'Priority Populations', value_name="Rate of CHN" )
         melted_rates_col = melted_rates['Rate of CHN']
 
         melted_hh_in_CHN = filtered_df.melt(id_vars=filtered_df.columns[:3], 
                                             value_vars=['2021_CHN_Youth' , '2021_CHN_SameGender', 
                                                         '2021_CHN_MentalHealth', '2021_CHN_Veteran', 
-                                                        '2021_CHN_SingleMother', '2021_CHN_WomenLed',
-                                                        '2021_CHN_Indigenous', '2021_CHN_VisibleMinority',
-                                                        '2021_CHN_BlackLed', '2021_CHN_NewImmigrant',
-                                                        '2021_CHN_Refugee', '2021_CHN_Under25',
-                                                        '2021_CHN_Between65', '2021_CHN_Over85',
-                                                        '2021_CHN_PhysicalLimitation', '2021_CHN_MentalLimitation',
-                                                        '2021_CHN_Transgender', '2021_CHN_All'], 
+                                                        '2021_CHN_SingleMother', '2021_CHN_Women',
+                                                        '2021_CHN_IndigenousHH', '2021_CHN_VisibleMinority',
+                                                        '2021_CHN_Black', '2021_CHN_RecentImmigrant',
+                                                        '2021_CHN_Refugee', '2021_CHN_Under24',
+                                                        '2021_CHN_Over65', '2021_CHN_Over85',
+                                                        '2021_CHN_Physical-AL', '2021_CHN_Cognitive-Mental-Addictions-AL',
+                                                        '2021_CHN_TransNonBinary', '2021_CHN_Total'], 
                                                         var_name='Priority Populations', value_name="Number of Households in CHN" )
         filtered_df = pd.concat([melted_hh_in_CHN, melted_rates_col ], axis=1)
         priority_pops = [x.split("_")[2] for x in filtered_df['Priority Populations'].values]
@@ -3466,19 +3543,19 @@ def update_output_11(geo, geo_c, scale, selected_columns):
                           "MentalHealth",  "HH with person(s) dealing with mental health and addictions activity limitation").replace(
                           "Veteran", "HH with Veteran(s)").replace(
                           "SingleMother", "Single-mother-led HH").replace(
-                          "WomenLed", "Women-led HH").replace(
-                          "Indigenous", "Indigenous HH").replace(
+                          "Women", "Women-led HH").replace(
+                          "IndigenousHH", "Indigenous HH").replace(
                           "VisibleMinority", "Visible minority HH").replace(
-                          "BlackLed", "Black-led HH").replace(
-                          "NewImmigrant", "New migrant-led HH").replace(
+                          "Black", "Black-led HH").replace(
+                          "RecentImmigrant", "New migrant-led HH").replace(
                           "Refugee", "Refugee-claimant-led HH").replace(
-                          "Under25", "HH head under 25").replace(
-                          "Between65", "HH head over 65").replace(
+                          "Under24", "HH head under 25").replace(
+                          "Over65", "HH head over 65").replace(
                           "Over85", "HH head over 85").replace(
-                          "PhysicalLimitation", "HH with person(s) physical activity limitation").replace(
-                          "MentalLimitation", "HH with person(s) dealing with cognitive, mental or addictions activity limitation").replace(
-                          "Transgender", "HH with Transgender or Non-binary person(s)").replace(
-                          "All", "Community (all HHs)")
+                          "Physical-AL", "HH with person(s) physical activity limitation").replace(
+                          "Cognitive-Mental-Addictions-AL", "HH with person(s) dealing with cognitive, mental or addictions activity limitation").replace(
+                          "TransNonBinary", "HH with Transgender or Non-binary person(s)").replace(
+                          "Total", "Community (all HHs)")
 
     table_columns = [{"name": [geo, col1, col2], "id": f"{col1}_{col2}"} for col1, col2 in table.columns]
     table_data = [
@@ -3550,26 +3627,25 @@ def update_geo_figure_11(geo, geo_c, scale, refresh):
                           "MentalHealth",  "HH with mental health or addictions activity limitations").replace(
                           "Veteran", "Veteran HH").replace(
                           "SingleMother", "Single mother-led HH").replace(
-                          "WomenLed", "Women-led HH").replace(
-                          "Indigenous", "Indigenous HH").replace(
+                          "Women", "Women-led HH").replace(
+                          "IndigenousHH", "Indigenous HH").replace(
                           "VisibleMinority", "Visible minority HH").replace(
-                          "BlackLed", "Black-led HH").replace(
-                          "NewImmigrant", "New migrant-led HH").replace(
+                          "Black", "Black-led HH").replace(
+                          "RecentImmigrant", "New migrant-led HH").replace(
                           "Refugee", "Refugee claimant-led HH").replace(
-                          "Under25", "HH head under 25").replace(
-                          "Between65", "HH head over 65").replace(
+                          "Under24", "HH head under 25").replace(
+                          "Over65", "HH head over 65").replace(
                           "Over85", "HH head over 85").replace(
-                          "PhysicalLimitation", "HH with physical activity limitation").replace(
-                          "MentalLimitation", "HH with cognitive, mental or addictions activity limitation").replace(
-                          "Transgender", "Transgender or Non-binary HH").replace(
-                          "All", "Community (all HHs)")
+                          "Physical-AL", "HH with physical activity limitation").replace(
+                          "Cognitive-Mental-Addictions-AL", "HH with cognitive, mental or addictions activity limitation").replace(
+                          "TransNonBinary", "Transgender or Non-binary HH").replace(
+                          "Total", "Community (all HHs)")
 
     find_max = table[('Households in Core Housing Need (CHN) by priority population, 2021','Rate of CHN')].values
-    if 'n/a' in find_max:
-        max_value = np.array([x for x in find_max if x != 'n/a'])
 
     if not table.empty:
-        max_value = find_max.max()
+        cleaned = [float(x) for x in find_max if isinstance(x, (int, float))]
+        max_value = max(cleaned)
     # Generating plot
     fig = go.Figure()
     for i in table[('Households in Core Housing Need (CHN) by priority population, 2021','Priority Populations')]:
@@ -3974,7 +4050,7 @@ def update_output_14a(geo, geo_c, scale, selected_columns):
     geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
 
     # Generating table
-    table, median_income, median_rent = table_14a_generator(geo, joined_df)
+    table, median_income, median_rent = table_14a_generator(geo, final_joined_df)
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table, text_align='right')
 
@@ -4036,7 +4112,7 @@ def update_geo_figure_14b(geo, geo_c, scale, refresh):
     geo = get_filtered_geo(geo, geo_c, scale, refresh)
 
     # Generating table
-    plot_df = graph_14b_generator(geo, joined_df)
+    plot_df = graph_14b_generator(geo, final_joined_df)
 
     fig_14b = go.Figure()
 
@@ -4095,7 +4171,7 @@ def update_output_14b(geo, geo_c, scale, selected_columns):
     geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
 
     # Generating table
-    table = table_14b_generator(geo, joined_df)
+    table = table_14b_generator(geo, final_joined_df)
     # pdb.set_trace()
     table = table[['Income Category (Max. affordable shelter cost)', '1 Person HH', '2 Person HH',
                         '3 Person HH', '4 Person HH', '5+ Person HH', 'Total']]
@@ -4167,7 +4243,7 @@ def update_output_16(geo, geo_c, scale, selected_columns):
     geo = get_filtered_geo(geo, geo_c, scale, selected_columns)
 
     # Generating table
-    table = table_16_generator(geo, updated_csd)
+    table = table_16_generator(geo, projection_with_cma)
 
     style_data_conditional = generate_style_data_conditional(table)
     style_header_conditional = generate_style_header_conditional(table, text_align='right')

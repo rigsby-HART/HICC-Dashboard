@@ -5,6 +5,8 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
 import numpy as np
+import re
+from decimal import Decimal
 
 
 throughputs_path = '..\\throughputs\\'
@@ -12,10 +14,9 @@ required_cols = ['Geography', 'ALT_GEO_CODE_EN']
 test_geo = ["Bay Roberts", "Conception Bay South", "St. John's", "Corner Brook", "Sylvan Lake"]
 
 class PrepareTables:
-    def __init__(self, master_data_filepath, transit_filepath, priority_pop_filepath):
+    def __init__(self, master_data_filepath, transit_filepath):
         self.master_data_filepath = master_data_filepath
         self.transit_filepath = transit_filepath
-        self.priority_pop_filepath = priority_pop_filepath
 
         print('Reading Input master data...')
         self.master_csd_data = PrepareTables.clean_input_data(
@@ -31,8 +32,25 @@ class PrepareTables:
                              ['CMHC-PTNAME (2016-2021)', 'CMHC-PTNAME-Alt (2022-2023)',
                               'CMHC PT Lookup', 'CMHC PT Lookup-Alt'], axis=1)
         
-        print('Preparing Province, CDs and CSDs data...')
-        self.master_data = pd.concat([self.master_csd_data, self.master_pro_cd_data], axis=0)
+        self.master_cma_data = PrepareTables.clean_input_data(
+            pd.read_excel(self.master_data_filepath, sheet_name='Master - CMAs')).rename(
+                columns={'CMAPUID': 'ALT_GEO_CODE_EN', 'CMANAME': 'Geography',
+                         '<removed1>': '2021_ExaminedForCHN_TransgenderNonBinary', 
+                         '<removed2>': '2021_CHN_TransgenderNonBinary',
+                         '2021_ExaminedForCHN_GenderDiversity': '2021_ExaminedForCHN_SameGender',
+                         '2021_CHN_GenderDiversity': '2021_CHN_SameGender'}).drop(
+                             ['CMHC CMA Lookup'], axis=1)
+        self.master_cma_data["ALT_GEO_CODE_EN"] = self.master_cma_data["ALT_GEO_CODE_EN"].astype(str).str.zfill(3)
+        
+        self.priority_pop = pd.read_excel(self.master_data_filepath, sheet_name='2021 Priority Pops - HART Clean')
+        
+        # first concat pt_cd_csd to get priority pop
+        self.pt_cd_csd_data = pd.concat([self.master_csd_data, self.master_pro_cd_data], axis=0)
+        self.pt_cd_csd_data = self.pt_cd_csd_data.merge(self.priority_pop, on='ALT_GEO_CODE_EN', how='left')
+        # pdb.set_trace()
+        
+        print('Preparing Province, CDs, CMAs and CSDs data...')
+        self.master_data = pd.concat([self.pt_cd_csd_data, self.master_cma_data], axis=0)
 
         self.cd_transit_data = pd.read_excel(self.transit_filepath, sheet_name='CDs')
         self.cd_transit_data['ALT_GEO_CODE_EN'] = self.cd_transit_data['DGUID_12'].str[-4:]
@@ -43,15 +61,11 @@ class PrepareTables:
         self.csd_transit_data = pd.read_excel(self.transit_filepath, sheet_name='CSDs').rename(columns=
                                                                                                {'CSDUID': 'ALT_GEO_CODE_EN'})
         self.cma_transit_data = pd.read_excel(self.transit_filepath, sheet_name='CMAs')
-        self.cma_transit_data['ALT_GEO_CODE_EN'] = self.cma_transit_data['DGUID_12'].str[-3:]
+        self.cma_transit_data['ALT_GEO_CODE_EN'] = self.cma_transit_data['DGUID_12'].str[-5:]
 
         self.transit_data = pd.concat([self.cd_transit_data, self.csd_transit_data,
                                        self.cma_transit_data, self.pt_transit_data], axis=0)
         self.transit_data['ALT_GEO_CODE_EN'] = self.transit_data['ALT_GEO_CODE_EN'].astype(str)
-
-        self.priority_pop = pd.read_excel(self.priority_pop_filepath).rename(columns={'All_ids': 'ALT_GEO_CODE_EN',
-                                                                                    'Geography': 'Full_Geography',
-                                                                                    'Formatted_Geography': 'Geography'})
 
 
     def prepare_output_1(self, future=''):
@@ -618,7 +632,6 @@ class PrepareTables:
     def prepare_output_11(self):
         #priority groups by core housing need
 
-        #todo waiting on more data- filled with -1 for now
         print("Preparing Output 11...")
         CHN_cols = [col for col in self.master_data.columns if 'ExaminedForCHN' in col] + [col
                                             for col in self.master_data.columns if '2021_CHN' in col]
@@ -637,8 +650,11 @@ class PrepareTables:
             print('Some columns from output 11 were not found')
 
         output_11[clean_CHN_cols] = output_11[clean_CHN_cols].apply(pd.to_numeric, errors='coerce')
-        # priority_groups = ['Youth', 'SameGender', 'TransgenderNonBinary', 'MentalHealth', 'Veteran', 'All']
-        priority_groups = ['Youth', 'SameGender', 'MentalHealth', 'Veteran'] # removed transgender and all fetching from HART
+        priority_groups = ['Youth', 'SameGender', 'MentalHealth', 'Veteran', 'Total',
+                           'Cognitive-Mental-Addictions-AL', 'Physical-AL', 'IndigenousHH', 'VisibleMinority',
+                           'Women', 'Black', 'RecentImmigrant', 'Refugee', 'SingleMother',
+                           'Under24', 'Over65', 'Over85', 'TransNonBinary']
+        
 
         for group in priority_groups:
             subset = output_11[[col for col in output_11.columns if group in col]]
@@ -646,16 +662,11 @@ class PrepareTables:
             # in CHN divided by the Number of Households Examined for CHN  ie. 2021_CHN_Youth / '2021_ExaminedForCHN_Youth'
             output_11[f'{group}_Rate of CHN'] = subset[f'2021_CHN_{group}'].div(subset[f'2021_ExaminedForCHN_{group}'].replace(0, np.nan))
 
-        print('Adding additional priority population from HART...')
-        final_output_11 = output_11.merge(self.priority_pop, how='left', on='ALT_GEO_CODE_EN').rename(
-            columns={'Geography_y': 'Geography_HART', 'Geography_x': 'Geography'}
-        ).drop(['Full_Geography', 'Geography_HART'], axis=1)
-
         # export to csv
-        final_output_11.to_csv(os.path.join(throughputs_path, "Output11.csv"))
+        output_11.to_csv(os.path.join(throughputs_path, "Output11.csv"))
         print("Output 11 Successfully created...")
 
-        return final_output_11
+        return output_11
 
     def prepare_output_12(self):
         # number of co-ops who registered with the co-op housing federation
@@ -703,6 +714,153 @@ class PrepareTables:
         print("Output 13 Successfully created...")
 
         return output_13
+    
+    def prepare_cma_output_14a(self):
+        print("Preparing CMA Output 14a...")
+        chn_income_cols = [col for col in self.master_cma_data.columns if '2021_HHsIncome_' in col]
+        output_14a_columns = required_cols +  chn_income_cols
+
+        assert len(output_14a_columns) != len(required_cols), "The required columns are not fetched"
+        try:
+            output_14a = self.master_cma_data[output_14a_columns]
+        except KeyError:
+            print('Some columns from output 14a were not found')
+        
+        output_14a[chn_income_cols] = output_14a[chn_income_cols].apply(pd.to_numeric, errors='coerce')
+
+        #TODO: Check with Renee which income categories to use
+        output_14a['20% or under of AMHI'] = "<=" + output_14a['2021_HHsIncome_Low'].map('${:,.0f}'.format)
+        output_14a['21% to 50% of AMHI'] = output_14a['2021_HHsIncome_Low'].map('${:,.0f}'.format) + \
+            " - " + output_14a['2021_HHsIncome_Moderate'].map('${:,.0f}'.format)
+        output_14a['51% to 80% of AMHI'] = output_14a['2021_HHsIncome_Moderate'].map('${:,.0f}'.format) + \
+            " - " + output_14a['2021_HHsIncome_Median'].map('${:,.0f}'.format)
+        output_14a['81% to 120% of AMHI'] = output_14a['2021_HHsIncome_Median'].map('${:,.0f}'.format) + \
+            " - " + output_14a['2021_HHsIncome_High'].map('${:,.0f}'.format)
+        output_14a['121% and more of AMHI'] = ">=" + (output_14a['2021_HHsIncome_High'] + 1).map('${:,.0f}'.format)
+
+        output_14a['Median income of household ($)'] = (output_14a['2021_HHsIncome_High'] / 1.2).astype(int)
+        output_14a['Rent AMHI'] = (output_14a['Median income of household ($)'].astype(float) * 0.3 / 12).astype(int)
+
+        output_14a['20% of AMHI'] = (output_14a['Median income of household ($)'].astype(float) * 0.2).astype(int)
+        output_14a['50% of AMHI'] = (output_14a['Median income of household ($)'].astype(float) * 0.5).astype(int)
+        output_14a['80% of AMHI'] = (output_14a['Median income of household ($)'].astype(float) * 0.8).astype(int)
+        output_14a['120% of AMHI'] = (output_14a['Median income of household ($)'].astype(float) * 1.2).astype(int)
+
+        output_14a['Rent 20% of AMHI'] = (output_14a['20% of AMHI'].astype(float) * 0.2 / 12).astype(int)
+        output_14a['Rent 50% of AMHI'] = (output_14a['50% of AMHI'].astype(float) * 0.5 / 12).astype(int)
+        output_14a['Rent 80% of AMHI'] = (output_14a['80% of AMHI'].astype(float) * 0.8 / 12).astype(int)
+        output_14a['Rent 120% of AMHI'] = (output_14a['120% of AMHI'].astype(float) * 1.2 / 12).astype(int)
+        
+        output_14a['20% or under of AMHI.1'] = "<=" + output_14a['Rent 20% of AMHI'].map('${:,.0f}'.format)
+        output_14a['21% to 50% of AMHI.1'] = output_14a['Rent 20% of AMHI'].map('${:,.0f}'.format) + " - " + output_14a['Rent 50% of AMHI'].map('${:,.0f}'.format)
+        output_14a['51% to 80% of AMHI.1'] = output_14a['Rent 50% of AMHI'].map('${:,.0f}'.format) + " - " + output_14a['Rent 80% of AMHI'].map('${:,.0f}'.format)
+        output_14a['81% to 120% of AMHI.1'] = output_14a['Rent 80% of AMHI'].map('${:,.0f}'.format) + " - " + output_14a['Rent 120% of AMHI'].map('${:,.0f}'.format)
+        output_14a['121% and more of AMHI.1'] = ">=" + (output_14a['Rent 120% of AMHI'] + 1).map('${:,.0f}'.format)
+
+        output_14a[f'Percent of Total HH that are in Very Low Income'] = output_14a['2021_HHsIncome_VeryLow'] / output_14a['2021_HHsIncome_Total']
+        output_14a[f'Percent of Total HH that are in Low Income'] = output_14a['2021_HHsIncome_Low'] / output_14a['2021_HHsIncome_Total']
+        output_14a[f'Percent of Total HH that are in Moderate Income'] = output_14a['2021_HHsIncome_Moderate'] / output_14a['2021_HHsIncome_Total']
+        output_14a[f'Percent of Total HH that are in Median Income'] = output_14a['2021_HHsIncome_Median'] / output_14a['2021_HHsIncome_Total']
+        output_14a[f'Percent of Total HH that are in High Income'] = output_14a['2021_HHsIncome_High'] / output_14a['2021_HHsIncome_Total']
+
+
+
+        # export to csv
+        output_14a.to_csv(os.path.join(throughputs_path, "CMA_Output14a.csv"))
+        print("Output 14a for CMA Successfully created...")
+
+        return output_14a
+        
+
+    def prepare_cma_output_14b(self):
+        print("Preparing CMA Output 14b...")
+        chn_income_pp_cols = [col for col in self.master_cma_data.columns if '2021_HHsCHN_' in col]
+        output_14b_columns = required_cols +  chn_income_pp_cols
+
+        assert len(output_14b_columns) != len(required_cols), "The required columns are not fetched"
+        try:
+            output_14b = self.master_cma_data[output_14b_columns]
+        except KeyError:
+            print('Some columns from output 14b were not found')
+        
+        output_14b[chn_income_pp_cols] = output_14b[chn_income_pp_cols].apply(pd.to_numeric, errors='coerce')
+
+        # To rename the columns as per HART data
+        income_dict = {'VeryLow': '20% or under', 'Low': '21% to 50%', 'Moderate': '51% to 80%', 
+                          'Median': '81% to 120%', 'High': '121% or more'}
+        pp_dict_1 = {'1pp': '1 person', '2pp': '2 persons', '3pp': '3 persons', 
+                   '4pp': '4 persons', '5pp': '5 or more persons household'}
+        pp_dict_2 = {'1pp': '1', '2pp': '2', '3pp': '3', '4pp': '4', '5pp': '5 or more'}
+        
+        income_pp_cols = {}
+        pattern = r'2021_HHsCHN_([A-Za-z]+)_(\dpp)'
+
+        for col in output_14b.columns:
+            match = re.search(pattern, col)
+            if match:
+                income_level, hh_size = match.groups()
+                income_pp_cols.setdefault(income_level, []).append(col)
+
+        for income_level, cols in income_pp_cols.items():
+            total_col = f'2021_HHsIncome_{income_level}_total_from_pp'
+            income_val = income_dict.get(income_level, income_level)
+            output_14b[total_col] = output_14b[cols].sum(axis=1)
+
+            for col in cols:
+                hh_size = re.search(r'_(\dpp)$', col).group(1)
+                hh_size_label = pp_dict_2.get(hh_size, hh_size)
+
+                computed_col = f'Per HH with income {income_val} of AMHI in core housing need that are {hh_size_label} person HH'
+                output_14b[computed_col] = output_14b[col] / output_14b[total_col]
+                        
+                
+                hh_val = pp_dict_1.get(hh_size, hh_size)
+                if income_val == '20% or under':
+                    new_name = f'Total - Private households by presence of at least one or of the combined activity limitations (Q11a, Q11b, Q11c or Q11f or combined)-{hh_val}-Households with income {income_val} of area median household income (AMHI)-Households in core housing need'
+                else:
+                    new_name = f'Total - Private households by presence of at least one or of the combined activity limitations (Q11a, Q11b, Q11c or Q11f or combined)-{hh_val}-Households with income {income_val} of AMHI-Households in core housing need'
+                
+                output_14b = output_14b.rename(columns={col: new_name})
+
+
+        # export to csv
+        output_14b.to_csv(os.path.join(throughputs_path, "CMA_Output14b.csv"))
+        print("Output 14b for CMA Successfully created...")
+
+        return output_14b
+    
+    def prepare_cma_output_16(self):
+        print("Preparing CMA Output 16...")
+        proj_cols = [col for col in self.master_cma_data.columns if '2031 Projected' in col]
+        output_16_columns = required_cols +  proj_cols
+
+        assert len(output_16_columns) != len(required_cols), "The required columns are not fetched"
+        try:
+            output_16 = self.master_cma_data[output_16_columns]
+        except KeyError:
+            print('Some columns from output 16 were not found')
+        
+        output_16[proj_cols] = output_16[proj_cols].apply(pd.to_numeric, errors='coerce')
+
+        income_dict = {'Very Low income': 'income 20% or under of area median household income (AMHI)', 
+                       'Low income': 'income 21% to 50% of AMHI', 'Moderate income': 'income 51% to 80% of AMHI', 
+                          'Median income': 'income 81% to 120% of AMHI', 'High income': 'income 121% or over of AMHI'}
+        
+        new_cols = []
+        for col in output_16.columns:
+            for key, val in income_dict.items():
+                if key in col:
+                    col = col.replace(key, val)
+            new_cols.append(col)
+
+        output_16.columns = new_cols
+
+        # export to csv
+        output_16.to_csv(os.path.join(throughputs_path, "CMA_Output16.csv"))
+        print("Output 16 for CMA Successfully created...")
+
+        return output_16
+
 
     @staticmethod
     def clean_input_data(input_data):
@@ -713,3 +871,4 @@ class PrepareTables:
         input_data['2021_75plus_Pop'] = input_data['2021_75to84_Pop'] + input_data['2021_85plus_Pop']
         input_data['2021_75plus_PHM'] = input_data['2021_75to84_PHM'] + input_data['2021_85plus_PHM']
         return input_data
+   

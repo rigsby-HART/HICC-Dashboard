@@ -340,6 +340,29 @@
   }
 }
 
+.radio-box-lgeo {
+  display: inline-block;
+  vertical-align: top;
+  padding-top: 25px;
+  padding-left: 15px;
+}
+
+.radio-item-lgeo label {
+  margin-right: 20px;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+input[type="radio"]:disabled + label {
+  color: #ccc;
+  cursor: not-
+  allowed;
+}
+button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
 
 .dropdown-box-lgeo {
   display: inline;
@@ -368,7 +391,7 @@
 }
 
 .region-button-lgeo {
-  width: 270px;
+  width: 300px;
 }
 
 
