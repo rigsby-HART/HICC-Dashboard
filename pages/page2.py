@@ -117,11 +117,21 @@ mapped_geo_code = pd.read_sql_table('geocodes_integrated', engine_old.connect())
 # mapped_geo_code = pd.concat([mapped_geo_code, missing_codes_df])
 
 # Configuration for plot icons
+cma_long_name_mapping = {'Campbellton (New Brunswick part / partie du Nouveau-Brunswick)': 'Campbellton (NB part)',
+                         'Campbellton (partie du Québec / Quebec part)': 'Campbellton (QC part)',
+                         'Hawkesbury (partie du Québec / Quebec part)': 'Hawkesbury (QC part)',
+                         "Hawkesbury (Ontario part / partie de l'Ontario)": "Hawkesbury (ON part)",
+                         "Ottawa - Gatineau (partie du Québec / Quebec part)": "Ottawa - Gatineau (QC part)",
+                         "Ottawa - Gatineau (Ontario part / partie de l'Ontario)": "Ottawa - Gatineau (ON part)",
+                         "Lloydminster (Saskatchewan part / partie de la Saskatchewan)": "Lloydminster (SK part)",
+                         "Lloydminster (Alberta part / partie de l'Alberta)": "Lloydminster (AL part)"
+                         }
 
 
 cma_data = pd.read_sql_table('cma_data', engine_new.connect())
 cma_data = cma_data[cma_data['CMAPUID'].notna()]
 cma_data['CMAPUID'] = pd.to_numeric(cma_data['CMAPUID'], errors='coerce').astype('Int64').astype(str)
+cma_data["CMANAME"] = cma_data["CMANAME"].map(cma_long_name_mapping).fillna(cma_data["CMANAME"])
 
 # cma_data["CMAUID"] = cma_data["CMAUID"].astype(str).str.zfill(3)
 cma_data['PRUID'] = cma_data['PRUID'].astype(int)
@@ -424,6 +434,9 @@ layout = html.Div(children=[
                      html.H6("Income categories are determined by their relationship with each geography's Area Median Household Income (AMHI). "
                              " The following table shows the range of household incomes and affordable housing costs that make up each income category, in 2020 dollar values. "
                              "It also shows what the portion of total households that fall within each category."),
+                     html.H6("Please note that HART does not have the AMHI for CMAs so the income range and affordable shelter cost range for "
+                             "each income category is left blank. Households within a CMA are assigned to a given income category based on the "
+                             "AMHI of the CSD that the household lives within, which may be different between CSDs."),
 
                      dbc.Button("Export", id="export-table-20", className="mb-3", color="primary"),
                      dash_table.DataTable(
@@ -1366,12 +1379,17 @@ def table_14a_generator(geo, df):
         portion_of_total_hh.append(round(filtered_df[f'Percent of Total HH that are in {x}'].tolist()[0] * 100, 2))
 
     amhi_list = []
-    for a in amhi_range:
-        amhi_list.append(filtered_df[a].tolist()[0])
-
     shelter_list = []
-    for s in shelter_range:
-        shelter_list.append(filtered_df[s].tolist()[0])
+
+    if len(str(geoid)) == 5: #append n/a for CMAs
+        amhi_list = ["n/a"] * len(amhi_range)
+        shelter_list = ["n/a"] * len(shelter_range)
+    else:
+        for a in amhi_range:
+            amhi_list.append(filtered_df[a].tolist()[0])
+        
+        for s in shelter_range:
+            shelter_list.append(filtered_df[s].tolist()[0])
 
     # pdb.set_trace()
 
@@ -1379,12 +1397,20 @@ def table_14a_generator(geo, df):
         filtered_df_geo_index = filtered_df.set_index(geo)
     except KeyError:
         filtered_df_geo_index = filtered_df.set_index("Geography")
-    
-    median_income = '${:0,.0f}'.format(float(val)) if (val := filtered_df_geo_index.at[geo, 'Median income of household ($)']) not in [None, np.nan] and pd.notna(val) else np.nan
-    median_rent = '${:0,.0f}'.format(float(val)) if (val := filtered_df_geo_index.at[geo, 'Rent AMHI']) not in [None, np.nan] and pd.notna(val) else np.nan
 
-    table = pd.DataFrame({'Income Category': income_ct, '% of Total HHs ': portion_of_total_hh, 'Annual HH Income ': amhi_list, 'Affordable Shelter Cost ': shelter_list})
-    table['% of Total HHs '] = np.where(table['% of Total HHs '].notna(), table['% of Total HHs '].astype(str) + '%', np.nan)
+    if len(str(geoid)) == 5: #append n/a for CMAs
+        median_income = "n/a"
+        median_rent = "n/a"
+    else:
+        median_income = '${:0,.0f}'.format(float(val)) if (val := filtered_df_geo_index.at[geo, 'Median income of household ($)']) not in [None, np.nan] and pd.notna(val) else np.nan
+        median_rent = '${:0,.0f}'.format(float(val)) if (val := filtered_df_geo_index.at[geo, 'Rent AMHI']) not in [None, np.nan] and pd.notna(val) else np.nan
+
+    if all(pd.isna(x) for x in portion_of_total_hh):
+        table = pd.DataFrame(columns=['Income Category', '% of Total HHs ', 'Annual HH Income ', 'Affordable Shelter Cost '])
+    else:
+        table = pd.DataFrame({'Income Category': income_ct, '% of Total HHs ': portion_of_total_hh, 'Annual HH Income ': amhi_list, 'Affordable Shelter Cost ': shelter_list})
+        table['% of Total HHs '] = np.where(table['% of Total HHs '].notna(), table['% of Total HHs '].astype(str) + '%', np.nan)
+
 
     return table, median_income, median_rent
 
@@ -1445,17 +1471,32 @@ def table_14b_generator(geo, df):
         value = filtered_df[c].tolist()[0]
         if i < 4:
             # x = b + " ($" + str(int(float(filtered_df[c].tolist()[0]))) + ")"
-            x = b + (" ($" + '{0:,.0f}'.format(float(value)) + ")" if pd.notna(value) else "")
+            if len(str(geoid)) == 5: #append "-" for CMAs
+                x = b + " (-)"
+            else:
+                x = b + (" ($" + '{0:,.0f}'.format(float(value)) + ")" if pd.notna(value) else "-")
             x_list.append(x)
         else:
             # x = b + " (>$" + str(int(float(filtered_df[c].tolist()[0]))) + ")"
-            x = b + (" (>$" + '{0:,.0f}'.format(float(value)) + ")" if pd.notna(value) else "")
+            if len(str(geoid)) == 5: #append "-" for CMAs
+                x = b + " (-)"
+            else:
+                x = b + (" (>$" + '{0:,.0f}'.format(float(value)) + ")" if pd.notna(value) else "-")
             x_list.append(x)
         i += 1
 
     table['Income Category (Max. affordable shelter cost)'] = x_list
     table['Income Category'] = ['Very low Income', 'Low Income', 'Moderate Income',
                                 'Median Income', 'High Income']
+    
+    numeric_cols = table.columns.difference(['Income Category', 'Income Category (Max. affordable shelter cost)'])
+    all_zero_or_na = table[numeric_cols].apply(pd.to_numeric, errors='coerce').fillna(0).sum().sum() == 0
+
+    if all_zero_or_na:
+        return pd.DataFrame(columns=[
+        'Income Category (Max. affordable shelter cost)', '1 Person HH', '2 Person HH',
+        '3 Person HH', '4 Person HH', '5+ Person HH', 'Total'
+        ])
 
     table['Total'] = table.sum(axis = 1)
     row_total_csd = table.sum(axis=0)
@@ -1482,16 +1523,22 @@ def graph_14b_generator(geo, df):
     for c in x_columns:
         value = filtered_df[c].tolist()[0]
         if i < 4:
-            x = (" ($" + '{0:,.0f}'.format(float(value)) + ") " if pd.notna(value) else "")
+            if len(str(geoid)) == 5: #append "-" for CMAs
+                x = "(-)"
+            else:
+                x = (" ($" + '{0:,.0f}'.format(float(value)) + ") " if pd.notna(value) else "")
             x_list.append(x)
         else:
-            x = (" (>$" + '{0:,.0f}'.format(float(value)) + ") " if pd.notna(value) else "")
+            if len(str(geoid)) == 5: #append "-" for CMAs
+                x = "(-)"
+            else:
+                x = (" (>$" + '{0:,.0f}'.format(float(value)) + ") " if pd.notna(value) else "")
             x_list.append(x)
         i += 1
 
     income_lv_list = ['20% or under', '21% to 50%', '51% to 80%', '81% to 120%', '121% or more']
-    x_list = [sub.replace('$$', '$') for sub in x_list]
-    x_list = [sub.replace('.0', '') for sub in x_list]
+    # x_list = [sub.replace('$$', '$') for sub in x_list]
+    # x_list = [sub.replace('.0', '') for sub in x_list]
 
     h_hold_value = []
     hh_p_num_list_full = []
@@ -1504,7 +1551,10 @@ def graph_14b_generator(geo, df):
             h_hold_value.append(filtered_df[column].tolist()[0])
             hh_p_num_list_full.append(hc)
 
-    plot_df = pd.DataFrame({'HH_Size': hh_p_num_list_full, 'Income_Category': x_list * 5, 'Percent': h_hold_value})
+    if all(pd.isna(x) for x in hh_p_num_list_full):
+        plot_df = pd.DataFrame(columns=['HH_Size', 'Income_Category', 'Percent'])
+    else:
+        plot_df = pd.DataFrame({'HH_Size': hh_p_num_list_full, 'Income_Category': x_base * 5, 'Percent': h_hold_value})
     
     return plot_df
 
@@ -1677,6 +1727,9 @@ def table_generator(geo, df, table_id):
         filtered_df = filtered_df
 
     if (table_id == 'output_1a') or (table_id == 'output_1b'):
+        # if filtered_df["Value"].fillna(0).sum() == 0:
+        #     table = pd.DataFrame(columns=filtered_df.columns[2:])
+        # else: # if want to keep tables blank
         table = filtered_df.iloc[:, 2:]
     else:
         table = filtered_df.iloc[:, 3:]

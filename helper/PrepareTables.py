@@ -864,7 +864,25 @@ class PrepareTables:
 
     @staticmethod
     def clean_input_data(input_data):
-        input_data = input_data.replace('--', np.nan).replace('**', np.nan).replace('#N/A', np.nan)
+        input_data = input_data.replace('--', np.nan).replace(
+            '**', np.nan).replace('#N/A', np.nan).replace(
+                'Campbellton (New Brunswick part / partie du Nouveau-Brunswick)', 
+                'Campbellton (NB part)').replace(
+                    'Campbellton (partie du Québec / Quebec part)',
+                    'Campbellton (QC part)').replace(
+                        'Hawkesbury (partie du Québec / Quebec part)',
+                        'Hawkesbury (QC part)').replace(
+                            "Hawkesbury (Ontario part / partie de l'Ontario)",
+                            "Hawkesbury (ON part)").replace(
+                                "Ottawa - Gatineau (partie du Québec / Quebec part)",
+                                "Ottawa - Gatineau (QC part)").replace(
+                                    "Ottawa - Gatineau (Ontario part / partie de l'Ontario)",
+                                    "Ottawa - Gatineau (ON part)").replace(
+                                        "Lloydminster (Saskatchewan part / partie de la Saskatchewan)",
+                                        "Lloydminster (SK part)").replace(
+                                            "Lloydminster (Alberta part / partie de l'Alberta)",
+                                            "Lloydminster (AL part)")
+                                            
         input_data.columns = input_data.columns.str.replace(
             '20162', '2016', regex=False).str.replace('Unsibsidized', 'Unsubsidized', regex=False)
         #make new column for 2021 75+ bin

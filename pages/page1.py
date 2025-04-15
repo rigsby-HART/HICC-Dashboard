@@ -45,6 +45,16 @@ mapped_geo_code = pd.read_sql_table('geocodes_integrated', engine_old.connect())
 # missing_codes_df = pd.DataFrame(add_new_codes, columns=mapped_geo_code.columns)
 # mapped_geo_code = pd.concat([mapped_geo_code, missing_codes_df])
 
+cma_long_name_mapping = {'Campbellton (New Brunswick part / partie du Nouveau-Brunswick)': 'Campbellton (NB part)',
+                         'Campbellton (partie du Québec / Quebec part)': 'Campbellton (QC part)',
+                         'Hawkesbury (partie du Québec / Quebec part)': 'Hawkesbury (QC part)',
+                         "Hawkesbury (Ontario part / partie de l'Ontario)": "Hawkesbury (ON part)",
+                         "Ottawa - Gatineau (partie du Québec / Quebec part)": "Ottawa - Gatineau (QC part)",
+                         "Ottawa - Gatineau (Ontario part / partie de l'Ontario)": "Ottawa - Gatineau (ON part)",
+                         "Lloydminster (Saskatchewan part / partie de la Saskatchewan)": "Lloydminster (SK part)",
+                         "Lloydminster (Alberta part / partie de l'Alberta)": "Lloydminster (AL part)"
+                         }
+
 province_code_map = {10 : 'NL', 11 : 'PEI', 12 : 'NS', 13 : 'NB',
                      24 : 'QC', 35 : 'ON', 46: 'MB', 47 : 'SK',
                      48: 'AL', 59: 'BC', 60: 'YT', 61 : 'NT', 62 : 'NU'}
@@ -53,6 +63,7 @@ province_code_map = {10 : 'NL', 11 : 'PEI', 12 : 'NS', 13 : 'NB',
 cma_data = pd.read_sql_table('cma_data', engine_new.connect())
 cma_data = cma_data[cma_data['CMAPUID'].notna()]
 cma_data['CMAPUID'] = pd.to_numeric(cma_data['CMAPUID'], errors='coerce').astype('Int64').astype(str)
+cma_data["CMANAME"] = cma_data["CMANAME"].map(cma_long_name_mapping).fillna(cma_data["CMANAME"])
 
 # cma_data["CMAUID"] = cma_data["CMAPUID"].astype(str).str.zfill(3)
 cma_data['PRUID'] = cma_data['PRUID'].astype(int)
@@ -450,6 +461,25 @@ def update_current_level(n1, n2, n3, n4, n5):
         return None
 
     return None  # fallback
+
+
+@callback(
+    Output('all-geo-dropdown', 'options'),
+    Input('view_mode_toggle', 'value')
+)
+def update_dropdown_options(view_mode):
+    if view_mode == 'PT-CMA':
+        # Show only CMA, Province, and Canada
+        options = mapped_geo_code[
+            mapped_geo_code['Geography'].str.contains('CMA|Province|Canada', case=False, na=False)
+        ]['Geography'].sort_values().unique().tolist()
+    else:
+        # Default or PT-CD-CSD: Show Province, CD, CSD, and Canada
+        options = mapped_geo_code[
+            mapped_geo_code['Geography'].str.contains('Province|CD|CSD|Canada', case=False, na=False)
+        ]['Geography'].sort_values().unique().tolist()
+
+    return [{'label': geo, 'value': geo} for geo in options]
 
 
 # Area Selection Map
