@@ -224,11 +224,30 @@ layout = html.Div(children=[
 
     # Main Layout
 
-    html.Div(
-        children=[
+    html.Div(children=[
 
             # Select Area Dropdowns
-            html.Div(children=[
+            html.Div(
+                children=[
+
+                html.Div(
+                    children=[
+                        html.Strong('Select Census Geographic Level'),
+                        dcc.RadioItems(
+                            id='view_mode_toggle',
+                            options=[
+                                {'label': 'PT-CD-CSD', 'value': 'PT-CD-CSD'},
+                                {'label': 'PT-CMA', 'value': 'PT-CMA'}
+                            ],
+                            value='PT-CD-CSD',  # default selection
+                            # inline=True,
+                            labelStyle={'display': 'inline-block', 'padding-right': '15px'},
+                            inputStyle={"margin-right": "5px"}
+                        )
+                    ],
+                    className='radio-box-lgeo',
+                    style={'margin-bottom': '10px'}
+                ),
 
                 # Main Area Dropdown
                 html.Div(
@@ -240,23 +259,7 @@ layout = html.Div(children=[
                     className='dropdown-lgeo'
                 ),
 
-                html.Div(
-                    children=[
-                        html.Strong('Map View Mode'),
-                        dcc.RadioItems(
-                            id='view_mode_toggle',
-                            options=[
-                                {'label': 'PT-CD-CSD', 'value': 'PT-CD-CSD'},
-                                {'label': 'PT-CMA', 'value': 'PT-CMA'}
-                            ],
-                            value='PT-CD-CSD',  # default selection
-                            inline=True,
-                            labelStyle={'display': 'inline-block', 'padding-right': '15px'},
-                            inputStyle={"margin-right": "5px"}
-                        )
-                    ],
-                    className='radio-box-lgeo'
-                ),
+                
 
                 # Comparison Area Dropdown
                 html.Div(
@@ -268,6 +271,7 @@ layout = html.Div(children=[
                     className='dropdown-lgeo', style={'display': 'none'}
                 )
             ],
+            style={'display': 'flex', 'flexDirection': 'column'},
                 className='dropdown-box-lgeo'
             ),
 
