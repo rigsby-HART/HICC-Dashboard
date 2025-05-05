@@ -558,6 +558,11 @@ layout = html.Div(children=[
                      html.H6(
                          f'The following chart shows the relative size of the primary (i.e. purpose-built rental) and secondary rental markets as a share of the whole rental market.',
                      ),
+                     html.H6("Please note that the number of Secondary Rental units is estimated here as the difference between the number "
+                             "of renter households in the 2021 Census of Population and the number of primary rental units identified in CMHC's "
+                             "Rental Market Survey in 2021. Due to the differing survey frames between the Census and the Rental Market Survey, "
+                             "most community/social housing units will be grouped within the Secondary Rental units estimate."),
+                             
                      dcc.Graph(id='graph_6',
                               figure=fig1,
                               config=config,
