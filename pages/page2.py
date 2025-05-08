@@ -49,6 +49,7 @@ df_partners = pd.read_sql_table('partners', engine_old.connect()) #raw table
 df_income = pd.read_sql_table('income', engine_old.connect())
 updated_csd = pd.read_sql_table('csd_hh_projections', engine_old.connect()).rename(columns=
                                                                                    {'Geo_Code': 'ALT_GEO_CODE_EN'})  # CSD level projections
+updated_csd['ALT_GEO_CODE_EN'] = updated_csd['ALT_GEO_CODE_EN'].fillna(0).astype(int).astype(str)
 
 
 # Fetching province, CD and CSD ids from geography names
