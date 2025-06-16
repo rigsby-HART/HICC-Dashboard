@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 from dash import dcc, html, Input, Output, State, ctx, callback
 from sqlalchemy import create_engine
 from shapely import wkb
-import pyproj
+import pyproj, time
 
 fiona.supported_drivers
 warnings.filterwarnings("ignore")
@@ -278,43 +278,41 @@ layout = html.Div(children=[
             # Area Scale Buttons
             html.Div(children=[
 
-                # html.Div(children=[
-                #     html.Button('View Census Subdivision (CSD)',
-                #                 title='A provincially-legislated area at the municipal scale, or areas treated as municipal equivalents for statistical purposes (e.g. reserves, settlements and unorganized territories). Municipal status is defined by laws in effect in each province and territory in Canada.',
-                #                 id='to-geography-1', n_clicks=0, className='region-button-lgeo'),
-                # ], className='region-button-box-lgeo'
-                # ),
                 html.Div(children=[
-                    html.Button('View Province / Territory', 
-                                title= "'Province' and 'territory' refer to the major political units of Canada. Canada is divided into 10 provinces and 3 territories.",
-                                id='to-province-1', n_clicks=0, className = 'region-button-lgeo'),
-                ], className='region-button-box-lgeo'
-                ),
+                    html.Div(children=[
+                        html.Button('Province/Territory', 
+                                    title= "'Province' and 'territory' refer to the major political units of Canada. Canada is divided into 10 provinces and 3 territories.",
+                                    id='to-province-1', n_clicks=0, className = 'region-button-lgeo'),
+                    ], className='region-button-box-lgeo'
+                    ),
+
+                    html.Div(children=[
+                        html.Button('Census Divisions (Regions)',
+                                    title='A provincially legislated area like counties, regional districts or equivalent areas. Census divisions are intermediate geographic areas between the province/territory level and the municipality (census subdivision).',
+                                    id='to-region-1', n_clicks=0, className='region-button-lgeo'),
+                    ], className='region-button-box-lgeo'
+                    ),
+                ], style={'display': 'flex', 'gap': '10px'}),
+
 
                 html.Div(children=[
-                    html.Button('View Census Division (CD)',
-                                title='A provincially legislated area like counties, regional districts or equivalent areas. Census divisions are intermediate geographic areas between the province/territory level and the municipality (census subdivision).',
-                                id='to-region-1', n_clicks=0, className='region-button-lgeo'),
-                ], className='region-button-box-lgeo'
-                ),
+                    html.Div(children=[
+                        html.Button('Census Subdivisions (Municipalities)', 
+                                    title= "A provincially-legislated area at the municipal scale, or areas treated as municipal equivalents for statistical purposes (e.g. reserves, settlements and unorganized territories). Municipal status is defined by laws in effect in each province and territory in Canada.",
+                                    id='to-geography-1', n_clicks=0, className = 'region-button-lgeo'),
+                    ], className='region-button-box-lgeo'
+                    ),
+                    
+                    html.Div(children=[
+                        html.Button('Census Metropolitan Areas (Metro Regions)', 
+                                    title= "Census metropolitan areas (CMA) are formed of one or more adjacent municipalities that are centred on and have a high degree of integration with a large population centre, known as the core. A CMAis delineated using adjacent census subdivisions (CSDs) as building blocks.",
+                                    id='to-cma-1', n_clicks=0, className = 'region-button-lgeo'),
+                    ], className='region-button-box-lgeo'
+                    ),
 
-                html.Div(children=[
-                    html.Button('View Census SubDivison (CSD)', 
-                                title= "A provincially-legislated area at the municipal scale, or areas treated as municipal equivalents for statistical purposes (e.g. reserves, settlements and unorganized territories). Municipal status is defined by laws in effect in each province and territory in Canada.",
-                                id='to-geography-1', n_clicks=0, className = 'region-button-lgeo'),
-                ], className='region-button-box-lgeo'
-                ),
-                
-                html.Div(children=[
-                    html.Button('View Census Metropolitan Area (CMA)', 
-                                title= "Census metropolitan areas (CMA) are formed of one or more adjacent municipalities that are centred on and have a high degree of integration with a large population centre, known as the core. A CMAis delineated using adjacent census subdivisions (CSDs) as building blocks.",
-                                id='to-cma-1', n_clicks=0, className = 'region-button-lgeo'),
-                ], className='region-button-box-lgeo'
-                ),
+                ], style={'display': 'flex', 'gap': '10px', 'marginTop': '10px'}),
 
-            ],
-                className='scale-button-box-lgeo',
-                style={'display': 'flex', 'gap': '10px'}
+            ],    className='scale-button-box-lgeo'
             ),
 
             # Area Scale Buttons
@@ -662,7 +660,7 @@ def subregion_map(value, random_color, clicked_code):
 
 
 # Metropolitan Map generator
-def metropolitan_map(value, random_color, clicked_code):
+def metropolitan_map(value, random_color, clicked_code, zoom_offset=0):
     
     # print(gdf_master)
 
@@ -675,6 +673,11 @@ def metropolitan_map(value, random_color, clicked_code):
         # print(clicked_code, province_cma_codes, province_cmas, cma_mapped_geo_codes)
 
         gdf_m_filtered = gdf_master[gdf_master['CMAPUID'].isin(province_cma_codes)]
+
+        if gdf_m_filtered.empty:
+            return None
+        
+        
 
     else:
         # clicked_code = mapped_geo_code.loc[mapped_geo_code['Geography'] == value, :]['Geo_Code'].tolist()[0]
@@ -714,9 +717,10 @@ def metropolitan_map(value, random_color, clicked_code):
 
 
     if len(str(clicked_code)) == 2:
+        zoom = 4 + zoom_offset
         fig_mm.update_layout(mapbox_style="carto-positron",
                                 mapbox_center = {"lat": gdf_m_filtered['lat'].mean(), "lon": gdf_m_filtered['lon'].mean()},
-                                mapbox_zoom = 4,
+                                mapbox_zoom = zoom,
                                 margin=dict(b=0,t=10,l=0,r=10),
                                 modebar_color = modebar_color, 
                                 modebar_activecolor = modebar_activecolor,
@@ -730,12 +734,17 @@ def metropolitan_map(value, random_color, clicked_code):
         if len(gdf_m_filtered) == 1:
             zoom = 8
 
+        if zoom_offset:
+            zoom += zoom_offset
+
+
         fig_mm.update_layout(mapbox_style="carto-positron",
                             mapbox_center={"lat": gdf_m_filtered['lat'].mean(), "lon": gdf_m_filtered['lon'].mean()},
                             mapbox_zoom=zoom,
                             margin=dict(b=0, t=10, l=0, r=10),
                             modebar_color=modebar_color, modebar_activecolor=modebar_activecolor,
                             autosize=True)
+
 
     return fig_mm
 
@@ -758,8 +767,12 @@ def metropolitan_map(value, random_color, clicked_code):
 def update_map(clickData, btn1, value, btn2, btn3, btn4, btn5, btn6, view_mode):
     # If no area is selected, then map will show Canada Map
 
-    if value == None:
-        value = default_value
+    # if value == None:
+    #     value = default_value
+
+    if value is None or (ctx.triggered_id == 'all-geo-dropdown' and value == default_value):
+        fig_canada = province_map(default_value, True)
+        return fig_canada, default_value
 
     clicked_code = mapped_geo_code.loc[mapped_geo_code['Geography'] == value, :]['Geo_Code'].tolist()[0]
     # pdb.set_trace()
@@ -801,14 +814,20 @@ def update_map(clickData, btn1, value, btn2, btn3, btn4, btn5, btn6, view_mode):
     
     if (ctx.triggered_id == "to-cma-1") or (len(clicked_code) == 5 and 'all-geo-dropdown-parent' == ctx.triggered_id):
         if len(clicked_code) == 5:
-            fig_msr = metropolitan_map(value, True, clicked_code)
+            zoom_offset = 5 if view_mode == "PT-CMA" and int(clicked_code[:2]) in ["11", "61"] else 0
+            fig_mm = metropolitan_map(value, True, clicked_code, zoom_offset)
             # pdb.set_trace()
-            region_name = df_cma_list.loc[df_cma_list['Geo_Code'] == clicked_code, 'Geography'].tolist()[0]
-            return fig_msr, region_name
+            if fig_mm is None:
+                fig_m = province_map(province_name, True)
+                return fig_m, province_name
+            else:
+                region_name = df_cma_list.loc[df_cma_list['Geo_Code'] == clicked_code, 'Geography'].tolist()[0]
+                return fig_mm, region_name
         else:
             province_code = clicked_code[:2]  # Extract Province code
             province_name = df_province_list.query("Geo_Code == "+ f"{province_code}")['Geography'].tolist()[0]
-            fig_mm = metropolitan_map(province_name, True, clicked_code)
+            zoom_offset = 5 if view_mode == "PT-CMA" and province_code in ["11", "61"] else 0
+            fig_mm = metropolitan_map(province_name, True, clicked_code, zoom_offset)
             return fig_mm, province_name
     
     if (ctx.triggered_id == "to-geography-1") or (len(clicked_code) > 5 and 'all-geo-dropdown-parent' == ctx.triggered_id):
@@ -827,7 +846,11 @@ def update_map(clickData, btn1, value, btn2, btn3, btn4, btn5, btn6, view_mode):
             province_name = df_province_list.query("Geo_Code == "+ f"{clicked_code}")['Geography'].tolist()[0]
             if view_mode == 'PT-CMA':
                 # print(clicked_code)
-                fig_mm = metropolitan_map(province_name, True, clicked_code)
+                zoom_offset = 5 if clicked_code in ["11", "61"] else 0
+                fig_mm = metropolitan_map(province_name, True, clicked_code, zoom_offset)
+                if fig_mm is None:
+                    fig_m = province_map(province_name, True)
+                    return fig_m, province_name
                 return fig_mm, province_name
             else:
                 fig_mr = region_map(value, True, clicked_code)
@@ -841,7 +864,8 @@ def update_map(clickData, btn1, value, btn2, btn3, btn4, btn5, btn6, view_mode):
             
         # If Census Metropolitan Area is Clicked
         elif len(clicked_code) == 5 and (view_mode is None or view_mode == "PT-CMA"):
-            fig_msr = metropolitan_map(value, True, clicked_code)
+            zoom_offset = 5 if view_mode == "PT-CMA" and int(clicked_code[:2]) in ["11", "61"] else 0
+            fig_msr = metropolitan_map(value, True, clicked_code, zoom_offset)
             region_name = df_cma_list.loc[df_cma_list['Geo_Code'] == clicked_code, 'Geography'].tolist()[0]
             # region_name = df_cma_list.query("Geo_Code == "+ f"{str(clicked_code)}")['Geography'].tolist()[0]
             return fig_msr, region_name
