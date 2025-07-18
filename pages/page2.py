@@ -224,8 +224,13 @@ layout = html.Div(children=[
                  # Description
                  html.Div([
                      html.H6(children=[
-                         """This dashboard is intended to gather and present some data that is requested for in the Housing Needs Assessment (HNA) template created by Housing, Infrastructure and Communities Canada (HICC). Some of the below data points have been created specifically to address the HNA template, while others have been gathered from other sources and presented here to make the data more accessible.
-                        Please note that data for smaller communities may be missing, or subject to inconsistencies that result from random rounding rules applied to data derived from the Canadian census.
+                         """This dashboard is intended to gather and present some data that is requested for in the Housing Needs Assessment (HNA) template """
+                         """created by Housing, Infrastructure and Communities Canada (HICC). Some of the below data points have been created specifically """
+                         """to address the HNA template, while others have been gathered from other sources and presented here to make the data more accessible. """
+                        """Please note that data for smaller communities may be missing, or subject to inconsistencies that result from random rounding rules """
+                        """applied to data derived from the Canadian census. If data is missing from graphs or tables for your selected community, we """
+                        """recommend moving up to the next geography level (such as the CD).
+                        
                         """,
                          html.Br(),
                          html.Br(),

@@ -236,8 +236,8 @@ layout = html.Div(children=[
                         dcc.RadioItems(
                             id='view_mode_toggle',
                             options=[
-                                {'label': 'PT-CD-CSD', 'value': 'PT-CD-CSD'},
-                                {'label': 'PT-CMA', 'value': 'PT-CMA'}
+                                {'label': 'Province/Territory, Census Divisions (Regions), Census Subdivisions (Municipalities)', 'value': 'PT-CD-CSD'},
+                                {'label': 'Province/Territory, Census Metropolitan Areas (Metro Regions)', 'value': 'PT-CMA'}
                             ],
                             value='PT-CD-CSD',  # default selection
                             # inline=True,
@@ -530,8 +530,7 @@ def province_map(value, random_color):
 # Region Map generator
 def region_map(value, random_color, clicked_code):
     if clicked_code == 'N':
-        clicked_province_code = mapped_geo_code.loc[mapped_geo_code['Geography'] == value, :]['Province_Code'].tolist()[
-            0]
+        clicked_province_code = mapped_geo_code.loc[mapped_geo_code['Geography'] == value, :]['Province_Code'].tolist()[0]
         clicked_code = mapped_geo_code.loc[mapped_geo_code['Geography'] == value, :]['Region_Code'].tolist()[0]
 
         gdf_r_filtered = gpd.read_file(f'./sources/mapdata_simplified/region_data/{clicked_province_code}.shp',
@@ -872,7 +871,7 @@ def update_map(clickData, btn1, value, btn2, btn3, btn4, btn5, btn6, view_mode):
         
         # If Census SubDivision is Clicked
         elif len(clicked_code) > 5 and (view_mode is None or view_mode == "PT-CD-CSD"):
-            fig_msr = subregion_map(value, True, clicked_code)
+            fig_msr = subregion_map(value, False, clicked_code)
             subregion_name = mapped_geo_code.query("Geo_Code == "+ f"{clicked_code}")['Geography'].tolist()[0]
             return fig_msr, subregion_name
         
